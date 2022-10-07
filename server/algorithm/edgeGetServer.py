@@ -10,16 +10,23 @@ matplotlib.use('Agg')
 file_path = 'server\\algorithm\\config\\config.conf'
 
 
-def sectionContourDraw(x, y):
+def functionFitting(x, y):
+    '''
+    函数拟合
+    输入：(x, y)分别为拟合函数的坐标轴数据
+    输出：在原画布上添加该函数线段
+    '''
     if(x == [] or y == []):
         return ''
-    series = cofigfile_reader_value(
-        'contourFitting', 'series')
-    Factor = np.polyfit(y, x, series)
+    Factor = np.polyfit(y, x, 8)
+    drawFunction(Factor, y)
+    return Factor
+
+
+def drawFunction(Factor, y):
     F = np.poly1d(Factor)
     fX = F(y)
     pylab.plot(fX, y,  'black', label='')
-    return Factor
 
 
 def pointTransform(image_width, image_height, real_width, real_height, x, y):
@@ -94,10 +101,10 @@ def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width
     # print('leftContour:',leftContour)
     pylab.figure(figsize=(16, 9))
     pylab.plot(image[0], image[1], 'b')
-    fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
-    fy2 = sectionContourDraw(
+    fy1 = functionFitting(leftContour[0], leftContour[1], fitting_strength)
+    fy2 = functionFitting(
         rightContour[0], rightContour[1], fitting_strength)
-    fy3 = sectionContourDraw(midLine[0], midLine[1], fitting_strength)
+    fy3 = functionFitting(midLine[0], midLine[1], fitting_strength)
     # print('f',fy1, fy2, fy3)
     message = ''
     if fy1 == '':
@@ -306,6 +313,52 @@ def configfile_revise(section_revise_list):
 
     # 写入到配置文件中
     config_writer.write(open(file_path, 'w'))
+
+
+def numList(p1, p2):
+    if p1 < p2:
+        return (range(int(p1), int(p2)))
+    else:
+        return (range(int(p2), int(p1)))
+
+
+def drawNormalLine(yFactor, x):
+    xFactor = np.array([1/yFactor[0], -yFactor[1]/yFactor[0]])
+    print(yFactor, xFactor)
+    F = np.poly1d(xFactor)
+    fY = F(x)
+    pylab.plot(x, fY,  'red', label='')
+
+
+def drawRadiusPic(fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
+    leftLineF = strToNdarray(fy1)
+    rightLineF = strToNdarray(fy2)
+    midLineFactor = strToNdarray(midLineFactor)
+    pylab.figure(figsize=(16, 9))
+    drawFunction(leftLineF, numList(leftTopP[1], leftBottomP[1]))
+    drawFunction(rightLineF, numList(leftTopP[1], rightBottomP[1]))
+    drawFunction(midLineFactor, numList(leftTopP[1], rightBottomP[1]))
+    yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0, 350])
+    for y in yList:
+        normalLineF, x = normalLine(midLineFactor, y)
+        xRange = numList((getIntersection(leftLineF.copy(), normalLineF)[0]),
+                         (getIntersection(rightLineF.copy(), normalLineF)[0]))
+        print(xRange)
+        drawNormalLine(normalLineF, xRange)
+    pylab.ylim(0, 720)
+    pylab.xlim(0, 1280)
+    pylab.xlabel('')
+    pylab.ylabel('')
+    pylab.axis('off')
+    pylab.margins(0.0)
+    sio = BytesIO()
+    pylab.savefig(sio, format='png', bbox_inches='tight', pad_inches=0.0)
+    data = base64.encodebytes(sio.getvalue()).decode()
+    src = str(data)
+    # # 记得关闭，不然画出来的图是重复的
+    pylab.close()
+    sio.close()
+    return src
 
 
 # def contourToImage(imageUploadPath, fileName):

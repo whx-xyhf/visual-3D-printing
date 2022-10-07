@@ -12,7 +12,6 @@ file_path = 'server\\algorithm\\config\\config.conf'
 
 def sectionContourDraw(x, y):
     if(x == [] or y == []):
-        print('err')
         return ''
     series = cofigfile_reader_value(
         'contourFitting', 'series')
@@ -29,18 +28,14 @@ def pointTransform(image_width, image_height, real_width, real_height, x, y):
     return [real_x, real_y]
 
 
-def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width, pic_height):
-    img_org = cv.imdecode(np.frombuffer(
-        image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
+def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width, pic_height, fitting_strength):
+    img_org = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
     image_width = img_org.shape[1]
     image_height = img_org.shape[0]
-    leftTopP = pointTransform(
-        pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
-    leftBottomP = pointTransform(
-        pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
-    rightBottomP = pointTransform(
-        pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
-    print(image_width, image_height, leftTopP, leftBottomP, rightBottomP)
+    leftTopP = pointTransform(pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
+    leftBottomP = pointTransform(pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
+    rightBottomP = pointTransform(pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
+    # print(image_width, image_height, leftTopP, leftBottomP, rightBottomP)
     img_org = cv.bitwise_not(img_org)
     ret, img_bin = cv.threshold(img_org, 128, 255, cv.THRESH_TRIANGLE)
 
@@ -92,13 +87,13 @@ def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width
             continue
         midLine[0].append((leftP[0]+rightP[0])/2)
         midLine[1].append((leftP[1]+rightP[1])/2)
-    print('leftContour:', leftContour)
+    # print('leftContour:',leftContour)
     pylab.figure(figsize=(16, 9))
     pylab.plot(image[0], image[1], 'b')
-    fy1 = sectionContourDraw(leftContour[0], leftContour[1])
-    fy2 = sectionContourDraw(rightContour[0], rightContour[1])
-    fy3 = sectionContourDraw(midLine[0], midLine[1])
-    print('f', fy1, fy2, fy3)
+    fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
+    fy2 = sectionContourDraw(rightContour[0], rightContour[1], fitting_strength)
+    fy3 = sectionContourDraw(midLine[0], midLine[1], fitting_strength)
+    # print('f',fy1, fy2, fy3)
     message = ''
     if fy1 == '':
         message += 'leftContour is wrong'+'\n'

@@ -29,12 +29,16 @@ def pointTransform(image_width, image_height, real_width, real_height, x, y):
 
 
 def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width, pic_height, fitting_strength):
-    img_org = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
+    img_org = cv.imdecode(np.frombuffer(
+        image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
     image_width = img_org.shape[1]
     image_height = img_org.shape[0]
-    leftTopP = pointTransform(pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
-    leftBottomP = pointTransform(pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
-    rightBottomP = pointTransform(pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
+    leftTopP = pointTransform(
+        pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
+    leftBottomP = pointTransform(
+        pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
+    rightBottomP = pointTransform(
+        pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
     # print(image_width, image_height, leftTopP, leftBottomP, rightBottomP)
     img_org = cv.bitwise_not(img_org)
     ret, img_bin = cv.threshold(img_org, 128, 255, cv.THRESH_TRIANGLE)
@@ -91,7 +95,8 @@ def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width
     pylab.figure(figsize=(16, 9))
     pylab.plot(image[0], image[1], 'b')
     fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
-    fy2 = sectionContourDraw(rightContour[0], rightContour[1], fitting_strength)
+    fy2 = sectionContourDraw(
+        rightContour[0], rightContour[1], fitting_strength)
     fy3 = sectionContourDraw(midLine[0], midLine[1], fitting_strength)
     # print('f',fy1, fy2, fy3)
     message = ''
@@ -181,6 +186,30 @@ def getSilhouette(image_buffer):
     return src
 
 
+def dataExport(fy1, fy2, midLineFactor):
+    fy1 = strToNdarray(fy1)
+    fy2 = strToNdarray(fy2)
+    midLineFactor = strToNdarray(midLineFactor)
+    yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0])
+    rList = []
+    for y in yList:
+        dis1 = -1.0
+        dis2 = -1.0
+        dis = [[], []]
+        normalL, x = normalLine(midLineFactor, y)
+        leftLineF = fy1.copy()
+        rightLineF = fy2.copy()
+        p = getIntersection(leftLineF, normalL)
+        dis1 = getDistance([x, y], p)
+        p = getIntersection(rightLineF, normalL)
+        dis2 = getDistance([x, y], p)
+        if(dis1 > 0 and dis2 > 0):
+            dis[0].append(dis1)
+            dis[1].append(dis2)
+        rList.append(dis)
+    return rList
+
+
 def getIntersection(factor1, factor2):
     '''
     交点计算
@@ -201,6 +230,35 @@ def getIntersection(factor1, factor2):
             y = np.real(p1.roots[i])
     x = p2(y)
     return [x, y]
+
+
+def normalLine(factor, y):
+    f = np.poly1d(factor)
+    x = f(y)
+    derF = f.deriv(1)
+    derX = derF(y)
+    ky = -1/derX
+    const = x-ky*y
+    lineFactor = np.array([ky, const])
+    return lineFactor, x
+
+
+def getDistance(p1, p2):
+    return (((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)**0.5).item()
+
+
+def strToNdarray(string):
+    string = string[1:-1]
+    strArray = string.split(' ')
+    numA = []
+    for i in range(len(strArray)):
+        if strArray[i] in ['']:
+            continue
+        if strArray[i][-2:] in ['\n']:
+            strArray[i] = strArray[i][:-3]
+        numA.append(float(strArray[i]))
+    arry = np.array(numA)
+    return arry
 
 
 def factorToPoly(Factor):

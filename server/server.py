@@ -59,6 +59,19 @@ def getFixContour():
     res = make_response(jsonify({'code': 200, 'data': content}))
     return res
 
+
+@app.route('/dataExport', methods=['GET', 'POST'])
+def dataExport():
+    fy1 = (request.form['fy1'])
+    fy2 = (request.form['fy2'])
+    midLineFactor = (request.form['fy3'])
+    content = {
+        "rList": edgeGetServer.dataExport(fy1,fy2,midLineFactor),
+        "message": "ok",
+    }
+    return jsonify(content)
+
+
 # @app.route("/clustering", methods=['POST'])
 # def clustering():
 #     n_cluster = request.get_json()['n_cluster']

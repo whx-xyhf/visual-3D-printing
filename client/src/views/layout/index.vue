@@ -1,7 +1,7 @@
 <template>
     <el-container>
     <el-header height="64px" style="box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%), 0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
-    background-color: #f5f5f5;">
+    background-color: #f5f5f5;padding: 0">
     <div class="tool_bar_content">
         <div style="font-weight:700">
             Visual analysis of 3D printing results
@@ -20,7 +20,7 @@
     <el-container>
         <el-aside width="300px" style="height:calc(100vh - 64px);padding:0 4px">
             <el-tabs v-model="activeTabName">
-                <el-tab-pane name="tool" style="padding:0 10px">
+                <el-tab-pane name="tool" style="padding:0 10px; overflow-y:auto">
                     <span slot="label"><i class="el-icon-s-tools"></i> TOOLS</span>
                     <div class="algorithm">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Extraction &nbsp;</div> <div class=" runIcon el-icon-video-play" title="Run" @click="getSilhouette"></div>
@@ -46,6 +46,10 @@
                     <div class="algorithm">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Fitting &nbsp;</div> <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div>
                         <div class="algorithm_content">
+                            <div class="algorithm_content_sliderItem">
+                                <div class="algorithm_content_demonstration">Fitting Strength:</div>
+                                <el-slider v-model="fitting_strength" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="20" :min="2" ></el-slider>
+                            <div class="sliderValue" contenteditable="true" id="fitting_strength">{{fitting_strength}}</div>
                             <div class="algorithm_content_sliderItem" style="height:40px">
                                 <div class="algorithm_content_demonstration">Area Select:</div>
                                 <el-switch
@@ -57,12 +61,13 @@
                                     >
                                 </el-switch>
                             </div>
+                            </div>
                         </div>
                     </div>
                     <!-- <button @click="getSilhouette">获取轮廓</button>
                     <button>轮廓拟合</button> -->
                 </el-tab-pane>
-                <el-tab-pane label="DATASETS" name="data" style="padding:0 10px">
+                <el-tab-pane label="DATASETS" name="data" style="padding:0 10px; overflow-y:auto">
                     <span slot="label"><i class="el-icon-s-data"></i> DATASETS</span>
                 </el-tab-pane>
             </el-tabs>
@@ -94,6 +99,7 @@ export default {
             height_Threshold: 500,
             kernel_size:3,
             area_select:false,
+            fitting_strength:8,
             points:[],
         }
     },
@@ -173,10 +179,13 @@ export default {
         getFinalContour(){
             const file = this.base64toFile(this.imageURl, this.fileName);
             const formData = new FormData();
+            const height = this.$refs.img.clientHeight;
+            const points = this.points.map(v=>[v[0], height - v[1]])
             formData.append('file', file);
-            formData.append('points', this.points);
+            formData.append('points', points);
             formData.append('width', this.$refs.img.clientWidth);
             formData.append('height', this.$refs.img.clientHeight);
+            formData.append('fitting_strength', this.fitting_strength);
             let config = {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -275,7 +284,7 @@ export default {
     border-bottom:1px solid #ccc;
 }
 .algorithm_content_sliderItem{
-    padding:0 0 0 20px;
+    /* padding:0 0 0 20px; */
     float: left;
     width: 100%;
 }

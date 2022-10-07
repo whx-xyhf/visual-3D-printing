@@ -36,7 +36,8 @@ def getFixContour():
     leftTopP = [float(points[0]), float(points[1])]
     leftBottomP = [float(points[2]), float(points[3])]
     rightBottomP = [float(points[4]), float(points[5])]
-    fy1, fy2, fy3, message, src = edgeGetServer.getFinalContour(file.read(), leftTopP, leftBottomP, rightBottomP, pic_width, pic_height)
+    fitting_strength = int(request.form.get('fitting_strength'))
+    fy1, fy2, fy3, message, src = edgeGetServer.getFinalContour(file.read(), leftTopP, leftBottomP, rightBottomP, pic_width, pic_height, fitting_strength)
     content = {
         "fy1": str(fy1),
         "fy2": str(fy2),

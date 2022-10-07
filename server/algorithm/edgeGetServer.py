@@ -1,18 +1,20 @@
+import configparser
 import cv2 as cv
 import numpy as np
 import pylab
 import base64
 from io import BytesIO
 import matplotlib
-import configRWServer
 matplotlib.use('Agg')
+
+file_path = 'server\\algorithm\\config\\config.conf'
 
 
 def sectionContourDraw(x, y):
     if(x == [] or y == []):
         print('err')
         return ''
-    series = configRWServer.cofigfile_reader_value(
+    series = cofigfile_reader_value(
         'contourFitting', 'series')
     Factor = np.polyfit(y, x, series)
     F = np.poly1d(Factor)
@@ -126,11 +128,11 @@ def getSilhouette(image_buffer):
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     new_grayImage = gray_img
 
-    low_Threshold = configRWServer.cofigfile_reader_value(
+    low_Threshold = cofigfile_reader_value(
         'edgeDetection', 'minthreshold')
-    height_Threshold = configRWServer.cofigfile_reader_value(
+    height_Threshold = cofigfile_reader_value(
         'edgeDetection', 'maxthreshold')
-    kernel_size = configRWServer.cofigfile_reader_value(
+    kernel_size = cofigfile_reader_value(
         'edgeDetection', 'kemelsize')
     detected_edges = cv.GaussianBlur(new_grayImage, (3, 3), 0)
     detected_edges = cv.Canny(detected_edges,
@@ -214,6 +216,43 @@ def factorToPoly(Factor):
         string += str(Factor[i])+'*y**'+str(len(Factor)-i-1)
     string += '-x'
     return string
+
+
+def cofigfile_reader_value(section_name, option_name):
+    # 读取配置文件
+    config_reader = configparser.ConfigParser()
+    config_reader.read(file_path)
+
+    # 获取配置信息中特定的取值
+    return config_reader.getint(section_name, option_name)
+
+
+def configfile_revise(section_revise_list):
+    # 修改配置文件
+    config_writer = configparser.ConfigParser()
+    config_writer.read(file_path)
+
+    for _ in section_revise_list:
+
+        if config_writer.has_option(_[0], _[1]):
+
+            # 对已有的配置信息做修改
+            config_writer.remove_option(_[0], _[1])
+            config_writer.set(_[0], _[1], _[2])
+
+        elif not config_writer.has_section(_[0]):
+
+            # 添加没有的配置信息
+            config_writer.add_section(_[0])
+            config_writer.set(_[0], _[1], _[2])
+
+        else:
+
+            # 添加没有的配置信息
+            config_writer.set(_[0], _[1], _[2])
+
+    # 写入到配置文件中
+    config_writer.write(open(file_path, 'w'))
 
 
 # def contourToImage(imageUploadPath, fileName):

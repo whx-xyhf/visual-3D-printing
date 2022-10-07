@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, make_response
 from algorithm import edgeGetServer
-from algorithm import configRWServer
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -27,11 +26,11 @@ def getImageSilhouette():
     low_Threshold = (request.form.get('low_Threshold'))
     height_Threshold = (request.form.get('height_Threshold'))
     kernel_size = (request.form.get('kernel_size'))
-    configRWServer.configfile_revise(
+    edgeGetServer.configfile_revise(
         [('edgeDetection', 'minThreshold', low_Threshold)])
-    configRWServer.configfile_revise(
+    edgeGetServer.configfile_revise(
         [('edgeDetection', 'maxthreshold', height_Threshold)])
-    configRWServer.configfile_revise(
+    edgeGetServer.configfile_revise(
         [('edgeDetection', 'kemelsize', kernel_size)])
     src = edgeGetServer.getSilhouette(
         file.read())

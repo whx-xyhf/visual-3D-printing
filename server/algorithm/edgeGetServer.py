@@ -4,17 +4,22 @@ import pylab
 import base64
 from io import BytesIO
 import matplotlib
+import configRWServer
 matplotlib.use('Agg')
+
 
 def sectionContourDraw(x, y):
     if(x == [] or y == []):
         print('err')
         return ''
-    Factor = np.polyfit(y, x, 8)
+    series = configRWServer.cofigfile_reader_value(
+        'contourFitting', 'series')
+    Factor = np.polyfit(y, x, series)
     F = np.poly1d(Factor)
     fX = F(y)
     pylab.plot(fX, y,  'black', label='')
     return Factor
+
 
 def pointTransform(image_width, image_height, real_width, real_height, x, y):
     real_x = real_width / image_width * x
@@ -23,12 +28,16 @@ def pointTransform(image_width, image_height, real_width, real_height, x, y):
 
 
 def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width, pic_height):
-    img_org = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
+    img_org = cv.imdecode(np.frombuffer(
+        image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
     image_width = img_org.shape[1]
     image_height = img_org.shape[0]
-    leftTopP = pointTransform(pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
-    leftBottomP = pointTransform(pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
-    rightBottomP = pointTransform(pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
+    leftTopP = pointTransform(
+        pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
+    leftBottomP = pointTransform(
+        pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
+    rightBottomP = pointTransform(
+        pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
     print(image_width, image_height, leftTopP, leftBottomP, rightBottomP)
     img_org = cv.bitwise_not(img_org)
     ret, img_bin = cv.threshold(img_org, 128, 255, cv.THRESH_TRIANGLE)
@@ -81,13 +90,13 @@ def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width
             continue
         midLine[0].append((leftP[0]+rightP[0])/2)
         midLine[1].append((leftP[1]+rightP[1])/2)
-    print('leftContour:',leftContour)
+    print('leftContour:', leftContour)
     pylab.figure(figsize=(16, 9))
     pylab.plot(image[0], image[1], 'b')
     fy1 = sectionContourDraw(leftContour[0], leftContour[1])
     fy2 = sectionContourDraw(rightContour[0], rightContour[1])
     fy3 = sectionContourDraw(midLine[0], midLine[1])
-    print('f',fy1, fy2, fy3)
+    print('f', fy1, fy2, fy3)
     message = ''
     if fy1 == '':
         message += 'leftContour is wrong'+'\n'
@@ -116,6 +125,13 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=500, kernel_s
     image_height = img.shape[0]
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     new_grayImage = gray_img
+
+    low_Threshold = configRWServer.cofigfile_reader_value(
+        'edgeDetection', 'minthreshold')
+    height_Threshold = configRWServer.cofigfile_reader_value(
+        'edgeDetection', 'maxthreshold')
+    kernel_size = configRWServer.cofigfile_reader_value(
+        'edgeDetection', 'kemelsize')
     detected_edges = cv.GaussianBlur(new_grayImage, (3, 3), 0)
     detected_edges = cv.Canny(detected_edges,
                               low_Threshold,
@@ -169,16 +185,25 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=500, kernel_s
 
 
 def getIntersection(factor1, factor2):
-    # poly1 = factorToPoly(factor1)
-    # poly2 = factorToPoly(factor2)
-    leftLim = 500
-    rightLim = 750
+    '''
+    交点计算
+    输入：factor1：函数1的因数 
+          factor2：函数2的因数
+    输出：返回两个函数的交点坐标
+    '''
+    bottomLim = 250
+    topLim = 800
+    subDis = len(factor1)-len(factor2)
     for i in range(len(factor2)):
-        factor1[i] -= factor2[i]
-    p = np.poly1d(factor1)
-    for i in range(len(p.roots)):
-        if np.imag(p.roots[i]) == 0 and np.real(p.roots[i]) < rightLim and np.real(p.roots[i]) > leftLim:
-            return np.real(p.roots[i])
+        factor1[i+subDis] -= factor2[i]
+    p1 = np.poly1d(factor1)
+    p2 = np.poly1d(factor2)
+    y = 0
+    for i in range(len(p1.roots)):
+        if np.imag(p1.roots[i]) == 0 and np.real(p1.roots[i]) < topLim and np.real(p1.roots[i]) > bottomLim:
+            y = np.real(p1.roots[i])
+    x = p2(y)
+    return [x, y]
 
 
 def factorToPoly(Factor):

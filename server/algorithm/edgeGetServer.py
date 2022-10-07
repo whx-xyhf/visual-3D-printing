@@ -119,7 +119,7 @@ def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width
     return fy1, fy2, fy3, message, src
 
 
-def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=500, kernel_size=3):
+def getSilhouette(image_buffer):
     img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
     image_width = img.shape[1]
     image_height = img.shape[0]

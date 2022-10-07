@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify, make_response
 from algorithm import edgeGetServer
+from algorithm import configRWServer
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
+
 
 @app.after_request
 def cors(environ):
@@ -11,21 +13,31 @@ def cors(environ):
     environ.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
     return environ
 
+
 @app.route("/upload_file", methods=['POST'])
 def upload_file():
     file = request.files.get('file')
     res = make_response(jsonify({'code': 200, 'data': file.read().decode()}))
     return res
 
+
 @app.route("/getSilhouette", methods=['POST'])
 def getImageSilhouette():
     file = request.files.get('file')
-    low_Threshold = int(request.form.get('low_Threshold'))
-    height_Threshold = int(request.form.get('height_Threshold'))
-    kernel_size = int(request.form.get('kernel_size'))
-    src = edgeGetServer.getSilhouette(file.read(), low_Threshold, height_Threshold, kernel_size)
+    low_Threshold = (request.form.get('low_Threshold'))
+    height_Threshold = (request.form.get('height_Threshold'))
+    kernel_size = (request.form.get('kernel_size'))
+    configRWServer.configfile_revise(
+        [('edgeDetection', 'minThreshold', low_Threshold)])
+    configRWServer.configfile_revise(
+        [('edgeDetection', 'maxthreshold', height_Threshold)])
+    configRWServer.configfile_revise(
+        [('edgeDetection', 'kemelsize', kernel_size)])
+    src = edgeGetServer.getSilhouette(
+        file.read())
     res = make_response(jsonify({'code': 200, 'data': src}))
     return res
+
 
 @app.route('/getFixContour', methods=['GET', 'POST'])
 def getFixContour():
@@ -36,7 +48,8 @@ def getFixContour():
     leftTopP = [float(points[0]), float(points[1])]
     leftBottomP = [float(points[2]), float(points[3])]
     rightBottomP = [float(points[4]), float(points[5])]
-    fy1, fy2, fy3, message, src = edgeGetServer.getFinalContour(file.read(), leftTopP, leftBottomP, rightBottomP, pic_width, pic_height)
+    fy1, fy2, fy3, message, src = edgeGetServer.getFinalContour(
+        file.read(), leftTopP, leftBottomP, rightBottomP, pic_width, pic_height)
     content = {
         "fy1": str(fy1),
         "fy2": str(fy2),

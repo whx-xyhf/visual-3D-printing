@@ -13,7 +13,6 @@ def sectionContourDraw(x, y, fitting_strength):
     F = np.poly1d(Factor)
     fX = F(y)
     pylab.plot(fX, y,  'black', label='')
-    return Factor
 
 def functionFitting(x, y):
     '''
@@ -40,12 +39,16 @@ def pointTransform(image_width, image_height, real_width, real_height, x, y):
 
 
 def getFinalContour(image_buffer, leftTopP, leftBottomP, rightBottomP, pic_width, pic_height, fitting_strength):
-    img_org = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
+    img_org = cv.imdecode(np.frombuffer(
+        image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
     image_width = img_org.shape[1]
     image_height = img_org.shape[0]
-    leftTopP = pointTransform(pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
-    leftBottomP = pointTransform(pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
-    rightBottomP = pointTransform(pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
+    leftTopP = pointTransform(
+        pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
+    leftBottomP = pointTransform(
+        pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
+    rightBottomP = pointTransform(
+        pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
     # print(image_width, image_height, leftTopP, leftBottomP, rightBottomP)
     img_org = cv.bitwise_not(img_org)
     ret, img_bin = cv.threshold(img_org, 128, 255, cv.THRESH_TRIANGLE)
@@ -254,6 +257,35 @@ def getIntersection(factor1, factor2, bottomLim, topLim):
     return [x, y]
 
 
+def normalLine(factor, y):
+    f = np.poly1d(factor)
+    x = f(y)
+    derF = f.deriv(1)
+    derX = derF(y)
+    ky = -1/derX
+    const = x-ky*y
+    lineFactor = np.array([ky, const])
+    return lineFactor, x
+
+
+def getDistance(p1, p2):
+    return (((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)**0.5).item()
+
+
+def strToNdarray(string):
+    string = string[1:-1]
+    strArray = string.split(' ')
+    numA = []
+    for i in range(len(strArray)):
+        if strArray[i] in ['']:
+            continue
+        if strArray[i][-2:] in ['\n']:
+            strArray[i] = strArray[i][:-3]
+        numA.append(float(strArray[i]))
+    arry = np.array(numA)
+    return arry
+
+
 def factorToPoly(Factor):
     string = ''
     for i in range(len(Factor)):
@@ -314,6 +346,52 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, pic_show_width, pic_
     sio.close()
     rList = dataExport(leftLineF, rightLineF, midLineFactor, yList, bottom, top)
     return src, rList, yList.tolist()
+
+
+def numList(p1, p2):
+    if p1 < p2:
+        return (range(int(p1), int(p2)))
+    else:
+        return (range(int(p2), int(p1)))
+
+
+def drawNormalLine(yFactor, x):
+    xFactor = np.array([1/yFactor[0], -yFactor[1]/yFactor[0]])
+    print(yFactor, xFactor)
+    F = np.poly1d(xFactor)
+    fY = F(x)
+    pylab.plot(x, fY,  'red', label='')
+
+
+def drawRadiusPic(fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
+    leftLineF = strToNdarray(fy1)
+    rightLineF = strToNdarray(fy2)
+    midLineFactor = strToNdarray(midLineFactor)
+    pylab.figure(figsize=(16, 9))
+    drawFunction(leftLineF, numList(leftTopP[1], leftBottomP[1]))
+    drawFunction(rightLineF, numList(leftTopP[1], rightBottomP[1]))
+    drawFunction(midLineFactor, numList(leftTopP[1], rightBottomP[1]))
+    yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0, 350])
+    for y in yList:
+        normalLineF, x = normalLine(midLineFactor, y)
+        xRange = numList((getIntersection(leftLineF.copy(), normalLineF)[0]),
+                         (getIntersection(rightLineF.copy(), normalLineF)[0]))
+        print(xRange)
+        drawNormalLine(normalLineF, xRange)
+    pylab.ylim(0, 720)
+    pylab.xlim(0, 1280)
+    pylab.xlabel('')
+    pylab.ylabel('')
+    pylab.axis('off')
+    pylab.margins(0.0)
+    sio = BytesIO()
+    pylab.savefig(sio, format='png', bbox_inches='tight', pad_inches=0.0)
+    data = base64.encodebytes(sio.getvalue()).decode()
+    src = str(data)
+    # # 记得关闭，不然画出来的图是重复的
+    pylab.close()
+    sio.close()
+    return src
 
 
 # def contourToImage(imageUploadPath, fileName):

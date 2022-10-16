@@ -86,17 +86,11 @@ def getTopLimit(imgMat):
     return topLimit[0]
 
 
-def getFinalContour(image_buffer, pic_width, pic_height, fitting_strength):
+def getFinalContour(image_buffer,  fitting_strength):
     img_org = cv.imdecode(np.frombuffer(
         image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
     image_width = img_org.shape[1]
     image_height = img_org.shape[0]
-    # leftTopP = pointTransform(
-    #     pic_width, pic_height, image_width, image_height, leftTopP[0], leftTopP[1])
-    # leftBottomP = pointTransform(
-    #     pic_width, pic_height, image_width, image_height, leftBottomP[0], leftBottomP[1])
-    # rightBottomP = pointTransform(
-    #     pic_width, pic_height, image_width, image_height, rightBottomP[0], rightBottomP[1])
     img_org = cv.bitwise_not(img_org)
     ret, img_bin = cv.threshold(img_org, 128, 255, cv.THRESH_TRIANGLE)
 
@@ -107,67 +101,37 @@ def getFinalContour(image_buffer, pic_width, pic_height, fitting_strength):
     img_thinning = cv.ximgproc.thinning(
         img_bin, thinningType=cv.ximgproc.THINNING_ZHANGSUEN)
     img_thinning = cv.ximgproc.thinning(img_org)
-
-    image = [[], []]
     midLine = [[], []]
+    midLineXY = np.where(img_thinning == 255)
+    midLine[0] = midLineXY[1]
+    midLine[1] = midLineXY[0]
+
     leftContour = [[], []]
     rightContour = [[], []]
     # 每行像素统计
     pixelStatistics = []
     # 记录图像宽度一阶变化率
     der1Contour = []
-    # 内轮廓为白色，其中中心线为黑色
-    img_array = np.array(img_bin-img_thinning)
-
-    for i in range(img_array.shape[0]):
-        if len(np.where(img_array[i])[0]) == 0:
-            continue
-        startLine = i
-        break
-
-    for i in range(img_array.shape[0]):
-        # J结尾均为判定
-        leftJ = 1
-        rightJ = 1
-        leftCJ = 1
-        rightCJ = 1
-        leftP = []
-        rightP = []
-        for x in range(img_array.shape[1]):
-            # 转换为图像高度
-            y = img_array.shape[0]-i
-            if img_array[i][x] == 255 and leftCJ == 1:
-                leftContour[0].append(x)
-                leftContour[1].append(y)
-                leftCJ = 0
-            # 右轮廓录入
-            if img_array[i][img_array.shape[1] - x-1] == 255 and rightCJ == 1:
-                rightContour[0].append(img_array.shape[1] - x-1)
-                rightContour[1].append(y)
-                rightCJ = 0
-                # 中心线左值
-            if img_array[i][x] == 255 and leftJ == 1 and leftCJ == 0:
-                leftP = [x, y]
-                leftJ = 0
-                # 中心线右值
-            if img_array[i][img_array.shape[1]-x-1] == 255 and rightJ == 1 and rightCJ == 0:
-                rightP = [img_array.shape[1]-x-1, y]
-                rightJ = 0
-            if rightJ == 0 and leftCJ == 0 and rightCJ == 0 and leftCJ == 0:
-                break
-        if leftP != [] and rightP != []:
-            midLine[0].append((leftP[0]+rightP[0])/2)
-            midLine[1].append((leftP[1]+rightP[1])/2)
-        contourIndex = len(rightContour[0])
-        if i == contourIndex - 1 + startLine and i >= startLine:
-            pixelStatistics.append(
-                rightContour[0][contourIndex-1]-leftContour[0][contourIndex-1])
+    # 原图像已取反，故原区域现为白色
+    img = np.array(img_org)
+    xy = list(np.where(img > 128))
+    imgData = [[], []]
+    imgData[0] = xy[1]
+    imgData[1] = xy[0]
+    xy = splitArray(xy[0], xy[1])
+    leftContour = [[], []]
+    rightContour = [[], []]
+    for i in range(len(xy[1])):
+        leftContour[0].append(xy[0][i][0])
+        leftContour[1].append(xy[1][i][0])
+        rightContour[0].append(xy[0][i][-1])
+        rightContour[1].append(xy[1][i][-1])
+        pixelStatistics.append(xy[0][i][-1]-xy[0][i][0])
 
     pylab.figure(figsize=(16, 9))
 
     der1Contour = np.diff(pixelStatistics)
-    topLimit = getTopLimit(img_array)
-
+    topLimit = getTopLimit(img)
 
     # 左轮廓边界为最后的极小值
     leftContourLimit = np.array(
@@ -179,7 +143,6 @@ def getFinalContour(image_buffer, pic_width, pic_height, fitting_strength):
             rightContourLimit = i
             break
 
-    print(rightContourLimit, leftContourLimit)
     rightContour[0] = rightContour[0][topLimit:rightContourLimit]
     rightContour[1] = rightContour[1][topLimit:rightContourLimit]
     leftContour[0] = leftContour[0][topLimit:leftContourLimit]
@@ -187,12 +150,17 @@ def getFinalContour(image_buffer, pic_width, pic_height, fitting_strength):
 
     der1midLine = np.diff(midLine[0])
     for i in signal.argrelextrema(der1midLine, np.greater)[0]:
-        if der1Contour[i] > 200:
-            midLine[0] = midLine[0][topLimit:i]
-            midLine[1] = midLine[1][topLimit:i]
+        if der1midLine[i] > 150:
+            midLine[0] = midLine[0][:i]
+            midLine[1] = midLine[1][:i]
+            break
+    for i in range(len(midLine[1])):
+        if midLine[1][i] >= topLimit:
+            midLine[0] = midLine[0][i:]
+            midLine[1] = midLine[1][i:]
             break
 
-    pylab.plot(image[0], image[1], 'w')
+    # pylab.plot(image[0], image[1], 'w')
     fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
     fy2 = sectionContourDraw(
         rightContour[0], rightContour[1], fitting_strength)
@@ -205,7 +173,7 @@ def getFinalContour(image_buffer, pic_width, pic_height, fitting_strength):
         message += 'rightContour is wrong'+'\n'
     if fy3 == '':
         message += 'midLine is wrong'+'\n'
-    pylab.ylim(0, image_height)
+    pylab.ylim(image_height, 0)
     pylab.xlim(0, image_width)
     pylab.xlabel('')
     pylab.ylabel('')
@@ -218,7 +186,6 @@ def getFinalContour(image_buffer, pic_width, pic_height, fitting_strength):
     pylab.close()
     sio.close()
     return fy1, fy2, fy3, message, src
-
 
 
 def splitArray(inputYArray, inputXArray):

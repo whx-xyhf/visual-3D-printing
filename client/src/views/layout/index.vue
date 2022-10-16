@@ -200,7 +200,7 @@ export default {
             imageURl3:'',
             activeTabName: 'tool',
             low_Threshold: 50,
-            height_Threshold: 500,
+            height_Threshold: 150,
             kernel_size:3,
             area_select:false,
             fitting_strength:8,

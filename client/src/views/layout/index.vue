@@ -71,13 +71,6 @@
                     </div>
                     <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Radius Data &nbsp;</div>
-                        <!-- <div class="algorithm_content">
-                            <div class="algorithm_content_sliderItem">
-                                <div class="algorithm_content_demonstration">Radius Count:</div>
-                                <el-slider v-model="radius_count" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="100" :min="2" ></el-slider>
-                            <div class="sliderValue" contenteditable="true" id="radius_count">{{radius_count}}</div>
-                            </div>
-                        </div> -->
                         <el-table
                             :data="tableData"
                             height="auto"
@@ -109,9 +102,8 @@
                         </el-table>
                     </div>
 
-                    
-               
                 </el-tab-pane>
+
                 <el-tab-pane label="DATASETS" name="data" style="padding:0 10px; overflow-y:auto">
                     <span slot="label"><i class="el-icon-s-data"></i> DATASETS</span>
                 </el-tab-pane>
@@ -126,46 +118,23 @@
                     </i>
                 </div>
                 <img :src="imageURl0" alt="" srcset=""  id="img"  ref="img0"/>
-                <div style="width:30px; height:30px;position:absolute;bottom:25px;left:50%;transform:translateX(-50%);background:#202020; border-radius:10px">
-                    <!-- <i class="el-icon-edit svg_tool" style="left:5.5px;" @click="areaSelect(2)" :style="{'color': startPen2?'#5CB6FF':'#fff'}"></i>
-                    <i class="el-icon-refresh svg_tool" style="left:30.5px;" @click="refresh(2)"></i> -->
-                    <i class="el-icon-video-play svg_tool" style="left:5.5px;" @click="getSilhouette"></i>
-                </div>
                 <!-- <div class="main_image_text filename">Origin Picture</div> -->
             </div>
 
             <div class="main_img_box" style="width:100%;height:100%;z-index:2" :style="{'display':imageURl1.length>0?'block':'none'}" ref="imgbox1" @mouseover="isActive(1)" @mouseout="noActive">
                 <img :src="imageURl1" alt="" srcset=""  id="img" ref="img1"/>
-                <svg v-show="startPen1" ref="svg1" style="position:absolute; top: 16px; left:16px">
-                    <!-- <rect :x="arae_select_rect1.x" :y="arae_select_rect1.y" :width="arae_select_rect1.width" :height="arae_select_rect1.height" fill="none" stroke="red" stroke-width="2px"></rect> -->
-                    <circle v-for="(value, index) in points1" :key="index" :cx="value[0]" :cy="value[1]" r="3" fill="red"></circle>
-                </svg>
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(1)">
                     </i>
-                </div>
-                <div style="width:80px; height:30px;position:absolute;bottom:25px;left:50%;transform:translateX(-50%);background:#202020; border-radius:10px">
-                    <i class="el-icon-edit svg_tool" style="left:5.5px;" @click="areaSelect(1)" :style="{'color': startPen1?'#5CB6FF':'#fff'}"></i>
-                    <i class="el-icon-refresh svg_tool" style="left:30.5px;" @click="refresh(1)"></i>
-                    <i class="el-icon-video-play svg_tool" style="left:55.5px;" @click="getFinalContour"></i>
                 </div>
                 <!-- <div class="main_image_text filename">Contour Extraction</div> -->
             </div>
 
             <div class="main_img_box" style="width:100%;height:100%;z-index:3" :style="{'display':imageURl2.length>0?'block':'none'}" ref="imgbox2"  @mouseover="isActive(2)" @mouseout="noActive">
                 <img :src="imageURl2" alt="" srcset=""  id="img" ref="img2"/>
-                <svg v-show="startPen2" ref="svg2" style="position:absolute; top: 16px; left:16px">
-                    <!-- <rect :x="arae_select_rect1.x" :y="arae_select_rect1.y" :width="arae_select_rect1.width" :height="arae_select_rect1.height" fill="none" stroke="red" stroke-width="2px"></rect> -->
-                    <circle v-for="(value, index) in points2" :key="index" :cx="value[0]" :cy="value[1]" r="3" fill="red"></circle>
-                </svg>
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(2)">
                     </i>
-                </div>
-                <div style="width:80px; height:30px;position:absolute;bottom:25px;left:50%;transform:translateX(-50%);background:#202020; border-radius:10px">
-                    <i class="el-icon-edit svg_tool" style="left:5.5px;" @click="areaSelect(2)" :style="{'color': startPen2?'#5CB6FF':'#fff'}"></i>
-                    <i class="el-icon-refresh svg_tool" style="left:30.5px;" @click="refresh(2)"></i>
-                    <i class="el-icon-video-play svg_tool" style="left:55.5px;" @click="getRadiusImg"></i>
                 </div>
                 <!-- <div class="main_image_text filename">Image Contour Fitting</div> -->
             </div>
@@ -175,11 +144,6 @@
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(3)"></i>
                 </div>
                 <img :src="imageURl3" alt="" srcset=""  id="img" ref="img3"/>
-                <div style="width:30px; height:30px;position:absolute;bottom:25px;left:50%;transform:translateX(-50%);background:#202020; border-radius:10px">
-                    <!-- <i class="el-icon-edit svg_tool" style="left:5.5px;" @click="areaSelect(2)" :style="{'color': startPen2?'#5CB6FF':'#fff'}"></i>
-                    <i class="el-icon-refresh svg_tool" style="left:30.5px;" @click="refresh(2)"></i> -->
-                    <i class="el-icon-video-play svg_tool" style="left:5.5px;" @click="getRadiusImg"></i>
-                </div>
                 <!-- <div class="main_image_text filename">Radius</div> -->
             </div>
             
@@ -210,8 +174,6 @@ export default {
             fy2:'',
             fy3:'',
             radius_count:10,
-            startPen1:false,
-            startPen2:false,
             arae_select_rect1:{x:0,y:0,width:0,height:0},
             active_view_index:-1,
             fullScreenFlag:true,
@@ -374,103 +336,6 @@ export default {
             }
             return new File([u8Arr], fileName + ".jpg", options);//返回文件流
         },
-        areaSelect(index){
-            if(index==1){
-                this.startPen1 = !this.startPen1;
-                if(this.startPen1){
-                    this.$refs.svg1.style.width = this.$refs.img1.clientWidth;
-                    this.$refs.svg1.style.height = this.$refs.img1.clientHeight;
-                    this.$refs.svg2.style.width = this.$refs.img2.clientWidth;
-                    this.$refs.svg2.style.height = this.$refs.img2.clientHeight;
-                    this.$refs.svg1.onmousedown = (e)=>{
-                        if(this.points1.length == 3) {
-                            this.points1 = [];
-                            this.points2 = [];
-                        }
-                        this.points1.push([e.offsetX, e.offsetY]);
-                        this.points2.push([e.offsetX, e.offsetY]);
-                    }
-                }
-                
-            }else{
-                this.startPen2 = !this.startPen2;
-                if(this.startPen2){
-                    this.$refs.svg2.style.width = this.$refs.img2.clientWidth;
-                    this.$refs.svg2.style.height = this.$refs.img2.clientHeight;
-                    this.$refs.svg2.onmousedown = (e)=>{
-                        if(this.points2.length == 3) this.points2 = [];
-                        // this.points1.push([e.offsetX, e.offsetY]);
-                        this.points2.push([e.offsetX, e.offsetY]);
-                    }
-                }
-            }
-        },
-        // areaSelect(index){
-        //     if(index==1){
-        //         this.startPen1 = !this.startPen1;
-        //         if(this.startPen1){
-        //             this.$refs.svg1.style.width = this.$refs.img1.clientWidth;
-        //             this.$refs.svg1.style.height = this.$refs.img1.clientHeight;
-        //             this.$refs.svg2.style.width = this.$refs.img2.clientWidth;
-        //             this.$refs.svg2.style.height = this.$refs.img2.clientHeight;
-        //             this.$refs.svg1.onmousedown = (e)=>{
-        //                 this.arae_select_rect1.width = 0;
-        //                 this.arae_select_rect1.height = 0;
-        //                 this.arae_select_rect1.x = e.offsetX;
-        //                 this.arae_select_rect1.y = e.offsetY;
-        //                 this.$refs.svg1.onmousemove = (e1)=>{
-        //                     let width = e1.offsetX - e.offsetX;
-        //                     let height = e1.offsetY - e.offsetY;
-        //                     if(width>0 && height>0){
-        //                         this.arae_select_rect1.width = width;
-        //                         this.arae_select_rect1.height = height;
-        //                     }
-        //                 }
-        //                 this.$refs.svg1.onmouseup = (ee)=>{
-        //                     this.$refs.svg1.onmousemove = null;
-        //                     this.points1 = [[e.offsetX, e.offsetY], [e.offsetX, ee.offsetY], [ee.offsetX, ee.offsetY]];
-        //                     this.points2 = [[e.offsetX, e.offsetY], [e.offsetX, ee.offsetY], [ee.offsetX, ee.offsetY]];
-        //                 }
-        //             }
-        //         }
-                
-        //     }else{
-        //         this.startPen2 = !this.startPen2;
-        //         if(this.startPen2){
-        //             this.$refs.svg2.style.width = this.$refs.img2.clientWidth;
-        //             this.$refs.svg2.style.height = this.$refs.img2.clientHeight;
-        //             this.$refs.svg2.onmousedown = (e)=>{
-        //                 this.arae_select_rect1.width = 0;
-        //                 this.arae_select_rect1.height = 0;
-        //                 this.arae_select_rect1.x = e.offsetX;
-        //                 this.arae_select_rect1.y = e.offsetY;
-        //                 this.$refs.svg2.onmousemove = (e1)=>{
-        //                     let width = e1.offsetX - e.offsetX;
-        //                     let height = e1.offsetY - e.offsetY;
-        //                     if(width>0 && height>0){
-        //                         this.arae_select_rect1.width = width;
-        //                         this.arae_select_rect1.height = height;
-        //                     }
-        //                 }
-        //                 this.$refs.svg2.onmouseup = (ee)=>{
-        //                     this.$refs.svg2.onmousemove = null;
-        //                     this.points1 = [[e.offsetX, e.offsetY], [e.offsetX, ee.offsetY], [ee.offsetX, ee.offsetY]];
-        //                     this.points2 = [[e.offsetX, e.offsetY], [e.offsetX, ee.offsetY], [ee.offsetX, ee.offsetY]];
-        //                 }
-        //             }
-        //         }
-        //     }
-        // },
-        refresh(index){
-            if(index==1){
-                this.arae_select_rect1 = {x:0,y:0,width:0,height:0};
-                this.points1 = [];
-            }
-            else{
-                this.arae_select_rect1 = {x:0,y:0,width:0,height:0};
-                this.points2 = [];
-            }
-        },
         fullScreen(index){
             this.fullScreenFlag = !this.fullScreenFlag;
             if(this.fullScreenFlag){
@@ -546,8 +411,6 @@ export default {
                 if(this.imageURl1.length>0) this.$refs.imgbox1.style.display = 'block';
                 if(this.imageURl2.length>0) this.$refs.imgbox2.style.display = 'block';
                 if(this.imageURl3.length>0) this.$refs.imgbox3.style.display = 'block';
-                this.startPen1 = false;
-                this.startPen2 = false;
                 this.active_view_index = -1;
             }
             
@@ -581,17 +444,6 @@ export default {
             return v[j]
         }))
         },
-        // getContainedSize(img) {
-        //     var ratio = img.naturalWidth/img.naturalHeight
-        //     var width = img.height*ratio
-        //     var height = img.height
-        //     console.log(img.naturalWidth, img.naturalHeight, img.width, img.height)
-        //     if (width > img.width) {
-        //         width = img.width
-        //         height = img.width/ratio
-        //     }
-        //     return [width, height]
-        // }
     }
 }
 </script>

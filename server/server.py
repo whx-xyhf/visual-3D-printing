@@ -30,12 +30,6 @@ def getImageSilhouette():
 @app.route('/getFixContour', methods=['GET', 'POST'])
 def getFixContour():
     file = request.files.get('file')
-    points = request.form.get('points').split(',')
-    pic_width = float(request.form.get('width'))
-    pic_height = float(request.form.get('height'))
-    # leftTopP = [float(points[0]), float(points[1])]
-    # leftBottomP = [float(points[2]), float(points[3])]
-    # rightBottomP = [float(points[4]), float(points[5])]
     fitting_strength = int(request.form.get('fitting_strength'))
     fy1, fy2, fy3, message, src = edgeGetServer.getFinalContour(file.read(), fitting_strength)
     content = {
@@ -47,18 +41,6 @@ def getFixContour():
     }
     res = make_response(jsonify({'code': 200, 'data': content}))
     return res
-
-# @app.route('/dataExport', methods=['GET', 'POST'])
-# def dataExport():
-#     fy1 = (request.form['fy1'])
-#     fy2 = (request.form['fy2'])
-#     midLineFactor = (request.form['fy3'])
-#     content = {
-#         "rList": edgeGetServer.dataExport(fy1, fy2, midLineFactor),
-#         "message": "ok",
-#     }
-#     res = make_response(jsonify({'code': 200, 'data': content}))
-#     return res
 
 
 @app.route('/drawRadiusPic', methods=['GET', 'POST'])

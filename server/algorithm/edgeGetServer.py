@@ -11,7 +11,7 @@ matplotlib.use('Agg')
 
 
 def sectionContourDraw(x, y, fitting_strength):
-    if(x == [] or y == []):
+    if x == [] or y == []:
         return ''
     Factor = np.polyfit(y, x, fitting_strength)
     F = np.poly1d(Factor)
@@ -25,7 +25,7 @@ def functionFitting(x, y):
     输入：(x, y)分别为拟合函数的坐标轴数据
     输出：在原画布上添加该函数线段
     '''
-    if(x == [] or y == []):
+    if x == [] or y == []:
         return ''
     Factor = np.polyfit(y, x, 8)
     drawFunction(Factor, y)
@@ -184,8 +184,14 @@ def getFinalContour(image_buffer,  fitting_strength):
     src = str(data)
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
+    value = sio.getvalue()
     sio.close()
-    return fy1, fy2, fy3, message, src
+    img_org = cv.imdecode(np.frombuffer(
+        value, np.uint8), cv.IMREAD_GRAYSCALE)
+    cv.imshow('xin', img_org)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+    return fy1, fy2, fy3, src, value
 
 
 def splitArray(inputYArray, inputXArray):
@@ -236,7 +242,8 @@ def getBottomLineByColumn(imgMat):
 
 
 def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_size=3):
-    img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
+    # img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
+    img = cv.imread(image_buffer)
     image_width = img.shape[1]
     image_height = img.shape[0]
     new_grayImage = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -306,8 +313,9 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
     src = str(data)
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
+    value = sio.getvalue()
     sio.close()
-    return src
+    return src, value
 
 
 def normalLine(factor, y):
@@ -429,55 +437,6 @@ def numList(p1, p2):
         return (range(int(p2), int(p1)))
 
 
-def drawNormalLine(yFactor, x):
-    xFactor = np.array([1/yFactor[0], -yFactor[1]/yFactor[0]])
-    # print(yFactor, xFactor)
-    F = np.poly1d(xFactor)
-    fY = F(x)
-    pylab.plot(x, fY,  'red', label='')
-
-
-def drawRadiusPic(count, image_ori_width, image_ori_height, pic_show_width, pic_show_height, fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
-    leftTopP = pointTransform(pic_show_width, pic_show_height,
-                              image_ori_width, image_ori_height, leftTopP[0], leftTopP[1])
-    leftBottomP = pointTransform(pic_show_width, pic_show_height,
-                                 image_ori_width, image_ori_height, leftBottomP[0], leftBottomP[1])
-    rightBottomP = pointTransform(pic_show_width, pic_show_height,
-                                  image_ori_width, image_ori_height, rightBottomP[0], rightBottomP[1])
-    top = leftTopP[1]
-    bottom = min(leftBottomP[1], rightBottomP[1])
-    leftLineF = strToNdarray(fy1)
-    rightLineF = strToNdarray(fy2)
-    midLineFactor = strToNdarray(midLineFactor)
-    pylab.figure(figsize=(16, 9))
-    drawFunction(leftLineF, numList(leftTopP[1], leftBottomP[1]))
-    drawFunction(rightLineF, numList(leftTopP[1], rightBottomP[1]))
-    drawFunction(midLineFactor, numList(leftTopP[1], rightBottomP[1]))
-    yList = np.linspace(top, bottom, count+1, endpoint=False)[1:]
-    # yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0, 350])
-    for y in yList:
-        normalLineF, x = normalLine(midLineFactor, y)
-        xRange = numList((getIntersection(leftLineF.copy(), normalLineF, bottom, top)[0]),
-                         (getIntersection(rightLineF.copy(), normalLineF, bottom, top)[0]))
-        drawNormalLine(normalLineF, xRange)
-    pylab.ylim(0, image_ori_height)
-    pylab.xlim(0, image_ori_width)
-    pylab.xlabel('')
-    pylab.ylabel('')
-    pylab.axis('off')
-    pylab.margins(0.0)
-    sio = BytesIO()
-    pylab.savefig(sio, format='png', bbox_inches='tight', pad_inches=0.0)
-    data = base64.encodebytes(sio.getvalue()).decode()
-    src = str(data)
-    # # 记得关闭，不然画出来的图是重复的
-    pylab.close()
-    sio.close()
-    rList = dataExport(leftLineF, rightLineF,
-                       midLineFactor, yList, bottom, top)
-    return src, rList, yList.tolist()
-
-
 def numList(p1, p2):
     if p1 < p2:
         return (range(int(p1), int(p2)))
@@ -493,15 +452,18 @@ def drawNormalLine(yFactor, x):
     pylab.plot(x, fY,  'red', label='')
 
 
-def drawRadiusPic(fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
+def drawRadiusPic(count, fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
     leftLineF = strToNdarray(fy1)
     rightLineF = strToNdarray(fy2)
     midLineFactor = strToNdarray(midLineFactor)
+    top = leftTopP[1]
+    bottom = min(leftBottomP[1], rightBottomP[1])
     pylab.figure(figsize=(16, 9))
     drawFunction(leftLineF, numList(leftTopP[1], leftBottomP[1]))
     drawFunction(rightLineF, numList(leftTopP[1], rightBottomP[1]))
     drawFunction(midLineFactor, numList(leftTopP[1], rightBottomP[1]))
-    yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0, 350])
+    yList = np.linspace(top, bottom, count + 1, endpoint=False)[1:]
+    # yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0, 350])
     for y in yList:
         normalLineF, x = normalLine(midLineFactor, y)
         xRange = numList((getIntersection(leftLineF.copy(), normalLineF)[0]),
@@ -521,4 +483,13 @@ def drawRadiusPic(fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
     sio.close()
-    return src
+    rList = dataExport(leftLineF, rightLineF, midLineFactor, yList, bottom, top)
+    return src, rList, yList.tolist()
+
+
+def runAll(image_buffer, low_Threshold=50, height_Threshold=150, kernel_size=3, fitting_strength=8):
+    src1, image_buffer1 = getSilhouette(image_buffer, low_Threshold, height_Threshold, kernel_size)
+    fy1, fy2, fy3, src2, image_buffer2 = getFinalContour(image_buffer1, fitting_strength)
+    return fy1, fy2, fy3, src1, src2
+
+runAll('../images/1.jpg')

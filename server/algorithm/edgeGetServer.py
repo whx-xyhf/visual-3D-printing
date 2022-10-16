@@ -220,6 +220,7 @@ def getFinalContour(image_buffer, pic_width, pic_height, fitting_strength):
     return fy1, fy2, fy3, message, src
 
 
+
 def splitArray(inputYArray, inputXArray):
     returnArray = [[], []]
     n = 0
@@ -318,7 +319,7 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
     leftContour[1] = leftContour[1][:leftContourLimit]
     for i in range(len(imgData[1])):
         # print(i)
-        if imgData[1][i] == leftContourLimit:
+        if imgData[1][i] >= leftContourLimit:
             imgData[0] = imgData[0][:i]
             imgData[1] = imgData[1][:i]
             break

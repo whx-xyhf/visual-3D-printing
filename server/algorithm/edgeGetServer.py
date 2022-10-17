@@ -8,6 +8,7 @@ import matplotlib
 from scipy.signal import savgol_filter
 import scipy.signal as signal
 from collections import Counter
+import itertools
 matplotlib.use('Agg')
 
 
@@ -64,13 +65,16 @@ def relativeSlope(inputList):
     return np.array(relativeSlopeList)
 
 
-def getTopLimit(imgMat):
+def getTopLimit(imgMat, threshold):
     '''
     上边界判定
     输入图像矩阵
     输出上边界y值
     '''
-    xy = list(np.where(imgMat == 255))
+    if threshold < 200:
+        xy = list(np.where(imgMat < 128))
+    else:
+        xy = list(np.where(imgMat == 255))
     xy = splitArray(xy[0], xy[1])
     leftContour = [[], []]
     rightContour = [[], []]
@@ -81,9 +85,12 @@ def getTopLimit(imgMat):
         rightContour[0].append(xy[0][i][-1])
         pixelStatistics.append(xy[0][i][-1]-xy[0][i][0])
 
-    pixelStatistics = savgol_filter(pixelStatistics, 5, 3)
+    # pixelStatistics = savgol_filter(pixelStatistics, 5, 3)
     der1Contour = relativeSlope(pixelStatistics)
-    # print(der1Contour)
+    # # 首批不为零元素的最后一个
+    # for i in range(len(der1Contour)-1):
+    #     if der1Contour[i] > 0 and der1Contour[i+1] == 0:
+    #         return i
     topLimit = np.array(signal.argrelextrema(der1Contour, np.greater)[0])
     return topLimit[0]
 
@@ -137,7 +144,7 @@ def getFinalContour(image_buffer,  fitting_strength):
     pylab.figure(figsize=(16, 9))
 
     der1Contour = np.diff(pixelStatistics)
-    topLimit = getTopLimit(img)
+    topLimit = getTopLimit(img, 255)
 
     # 左轮廓边界为最后的极小值
     leftContourLimit = np.array(
@@ -246,6 +253,22 @@ def getBottomLineByColumn(imgMat):
     return leftContourLimit
 
 
+def imgPatch(img, leftC, rightC, topLimit):
+    """
+    上部缺口修补
+    """
+    offset = 10
+    for row in range(topLimit-offset, topLimit+offset):
+        if leftC[0][row] > max(min(leftC[0][row-offset:row]), min(leftC[0][row+1:row+offset])):
+            img[0][row] = np.append(img[0][row], max(
+                min(leftC[0][row-offset:row]), min(leftC[0][row+1:row+offset])))
+            img[1][row] = np.append(img[1][row], row)
+        if rightC[0][row] < min(max(rightC[0][row-offset:row]), max(rightC[0][row+1:row+offset])):
+            img[0][row] = np.append(img[0][row], min(
+                max(rightC[0][row-offset:row]), max(rightC[0][row+1:row+offset])))
+            img[1][row] = np.append(img[1][row], row)
+
+
 def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_size=3):
     img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
     # img = cv.imread(image_buffer)
@@ -269,9 +292,6 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
 
     img = np.array(imageCountour)
     xy = list(np.where(img < 128))
-    imgData = [[], []]
-    imgData[0] = xy[1]
-    imgData[1] = xy[0]
     xy = splitArray(xy[0], xy[1])
     leftContour = [[], []]
     rightContour = [[], []]
@@ -280,11 +300,13 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
         leftContour[1].append(xy[1][i][0])
         rightContour[0].append(xy[0][i][-1])
         rightContour[1].append(xy[1][i][-1])
+    topLimit = getTopLimit(img, 128)
+    print(topLimit)
+    imgPatch(xy, leftContour, rightContour, topLimit)
 
     leftContourLimit = getBottomLineByColumn(img)
     fittingAssess = 0
     fittingAssessList = []
-
     for i in range(int(img.shape[0]/100)):
         y = leftContour[1][:leftContourLimit - i]
         x = leftContour[0][:leftContourLimit-i]
@@ -296,15 +318,16 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
     leftContourLimit -= fittingAssessList.index(max(fittingAssessList))
     leftContour[0] = leftContour[0][:leftContourLimit]
     leftContour[1] = leftContour[1][:leftContourLimit]
-    for i in range(len(imgData[1])):
-        # print(i)
-        if imgData[1][i] >= leftContourLimit:
-            imgData[0] = imgData[0][:i]
-            imgData[1] = imgData[1][:i]
+    for i in range(len(xy[1])):
+        if xy[1][i][0] >= leftContourLimit:
+            xy[0] = xy[0][:i]
+            xy[1] = xy[1][:i]
             break
-
+    imgData = [[], []]
+    imgData[0] = list(itertools.chain.from_iterable(xy[0]))
+    imgData[1] = list(itertools.chain.from_iterable(xy[1]))
     pylab.figure(figsize=(16, 9))
-    pylab.plot(imgData[0], imgData[1], 'black')
+    pylab.plot(imgData[0],  imgData[1], 'black')
     pylab.ylim(image_height, 0)
     pylab.xlim(0, image_width)
     pylab.xlabel('')
@@ -403,17 +426,6 @@ def getIntersection(factor1, factor2, bottomLim, topLim):
     return [x, y]
 
 
-def normalLine(factor, y):
-    f = np.poly1d(factor)
-    x = f(y)
-    derF = f.deriv(1)
-    derX = derF(y)
-    ky = -1/derX
-    const = x-ky*y
-    lineFactor = np.array([ky, const])
-    return lineFactor, x
-
-
 def factorToPoly(Factor):
     string = ''
     for i in range(len(Factor)):
@@ -479,5 +491,7 @@ def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strengt
     src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3), topLimit, leftContourLimit, rightContourLimit)
     return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
 
+
 if __name__ == '__main__':
     runAll('../images/1.jpg')
+

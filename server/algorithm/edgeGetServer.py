@@ -103,13 +103,17 @@ def getFinalContour(image_buffer,  fitting_strength):
     img_thinning = cv.ximgproc.thinning(
         img_bin, thinningType=cv.ximgproc.THINNING_ZHANGSUEN)
     img_thinning = cv.ximgproc.thinning(img_org)
+    # cv.imshow('img_org', img_org)
+    # cv.imshow('img_bin', img_bin)
+    # cv.imshow('img_thinning', img_thinning)
+    #
+    # cv.waitKey()
+    # cv.destroyAllWindows()
     midLine = [[], []]
     midLineXY = np.where(img_thinning == 255)
     midLine[0] = midLineXY[1]
     midLine[1] = midLineXY[0]
 
-    leftContour = [[], []]
-    rightContour = [[], []]
     # 每行像素统计
     pixelStatistics = []
     # 记录图像宽度一阶变化率
@@ -161,7 +165,10 @@ def getFinalContour(image_buffer,  fitting_strength):
             midLine[0] = midLine[0][i:]
             midLine[1] = midLine[1][i:]
             break
-
+    # print(leftContourLimit, leftContour[0])
+    # leftContour[0] = leftContour[0] - leftContourLimit + 10
+    # rightContour[0] = rightContour[0] - leftContourLimit + 10
+    # midLine[0] = midLine[0] - leftContourLimit + 10
     # pylab.plot(image[0], image[1], 'w')
     fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
     fy2 = sectionContourDraw(
@@ -176,7 +183,7 @@ def getFinalContour(image_buffer,  fitting_strength):
     if fy3 == '':
         message += 'midLine is wrong'+'\n'
     pylab.ylim(image_height, 0)
-    pylab.xlim(leftContourLimit - 10, image_width - rightContourLimit - 10)
+    pylab.xlim(0, image_width)
     pylab.xlabel('')
     pylab.ylabel('')
     pylab.axis('off')
@@ -472,4 +479,5 @@ def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strengt
     src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3), topLimit, leftContourLimit, rightContourLimit)
     return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
 
-runAll('../images/1.jpg')
+if __name__ == '__main__':
+    runAll('../images/1.jpg')

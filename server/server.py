@@ -78,6 +78,36 @@ def drawRadiusPic():
     return res
 
 
+@app.route('/runAllProcess', methods=['POST'])
+def runAllProcess():
+    file = request.files.get('file')
+    low_Threshold = int(request.form.get('low_Threshold'))
+    height_Threshold = int(request.form.get('height_Threshold'))
+    kernel_size = int(request.form.get('kernel_size'))
+    fitting_strength = int(request.form.get('fitting_strength'))
+    count = int(request.form.get('count'))
+    src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, width, height, rList, yList \
+        = edgeGetServer.runAll(file.read(), low_Threshold, height_Threshold, fitting_strength, count, kernel_size)
+    content = {
+        "src1": src1,
+        "src2": src2,
+        "src3": src3,
+        "fy1": str(fy1),
+        "fy2": str(fy2),
+        "fy3": str(fy3),
+        "topLimit": int(topLimit),
+        "leftLimit": int(leftContourLimit),
+        "rightLimit": int(rightContourLimit),
+        "width": int(width),
+        "height": int(height),
+        'r': rList,
+        'y': yList,
+        "message": "ok",
+        'code': 200
+    }
+    res = make_response(jsonify({'code': 200, 'data': content}))
+    return res
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
     globalTopLimit = 0

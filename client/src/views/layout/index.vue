@@ -206,6 +206,7 @@ export default {
             fitting_strength:8,
             points1:[],
             points2:[],
+            limit:[],
             fy1:'',
             fy2:'',
             fy3:'',
@@ -326,6 +327,7 @@ export default {
                     this.fy1 = res.data.data.fy1;
                     this.fy2 = res.data.data.fy2;
                     this.fy3 = res.data.data.fy3;
+                    this.limit=res.data.data.limit;
                 }
             })
         },
@@ -336,6 +338,7 @@ export default {
                 fy1:this.fy1,
                 fy2:this.fy2,
                 fy3:this.fy3,
+                limit:this.limit,
                 points:points,
                 img_ori_width: this.active_view_index == 3? this.$refs.img3.naturalWidth : this.$refs.img2.naturalWidth,
                 img_ori_height: this.active_view_index == 3? this.$refs.img3.naturalHeight : this.$refs.img2.naturalHeight,

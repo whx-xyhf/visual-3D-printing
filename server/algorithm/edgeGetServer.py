@@ -1,3 +1,4 @@
+from tkinter import Toplevel
 import cv2 as cv
 import numpy as np
 import pylab
@@ -17,6 +18,7 @@ def sectionContourDraw(x, y, fitting_strength):
     F = np.poly1d(Factor)
     fX = F(y)
     pylab.plot(fX, y,  'black', label='')
+    return Factor
 
 
 def functionFitting(x, y):
@@ -185,7 +187,7 @@ def getFinalContour(image_buffer,  fitting_strength):
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
     sio.close()
-    return fy1, fy2, fy3, message, src
+    return fy1, fy2, fy3, message, src, topLimit, leftContourLimit, rightContourLimit
 
 
 def splitArray(inputYArray, inputXArray):
@@ -366,10 +368,17 @@ def dataExport(fy1, fy2, midLineFactor, yList, bottom, top):
 def getIntersection(factor1, factor2, bottomLim, topLim):
     '''
     交点计算
-    输入：factor1：函数1的因数
-          factor2：函数2的因数
+    输入：\n
+          factor1：函数1的因数\n
+          factor2：函数2的因数\n
+          bottomLim：下边界限制\n
+          topLim：上边界限制\n
+
+          tips:上边界默认大于下边界，函数内会自动调整
     输出：返回两个函数的交点坐标
     '''
+    if bottomLim > topLim:
+        bottomLim, topLim = topLim, bottomLim
     subDis = len(factor1)-len(factor2)
     for i in range(len(factor2)):
         factor1[i+subDis] -= factor2[i]
@@ -392,24 +401,6 @@ def normalLine(factor, y):
     const = x-ky*y
     lineFactor = np.array([ky, const])
     return lineFactor, x
-
-
-def getDistance(p1, p2):
-    return (((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)**0.5).item()
-
-
-def strToNdarray(string):
-    string = string[1:-1]
-    strArray = string.split(' ')
-    numA = []
-    for i in range(len(strArray)):
-        if strArray[i] in ['']:
-            continue
-        if strArray[i][-2:] in ['\n']:
-            strArray[i] = strArray[i][:-3]
-        numA.append(float(strArray[i]))
-    arry = np.array(numA)
-    return arry
 
 
 def factorToPoly(Factor):
@@ -437,30 +428,23 @@ def drawNormalLine(yFactor, x):
     pylab.plot(x, fY,  'red', label='')
 
 
-def drawRadiusPic(count, image_ori_width, image_ori_height, pic_show_width, pic_show_height, fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
-    leftTopP = pointTransform(pic_show_width, pic_show_height,
-                              image_ori_width, image_ori_height, leftTopP[0], leftTopP[1])
-    leftBottomP = pointTransform(pic_show_width, pic_show_height,
-                                 image_ori_width, image_ori_height, leftBottomP[0], leftBottomP[1])
-    rightBottomP = pointTransform(pic_show_width, pic_show_height,
-                                  image_ori_width, image_ori_height, rightBottomP[0], rightBottomP[1])
-    top = leftTopP[1]
-    bottom = min(leftBottomP[1], rightBottomP[1])
+def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFactor, topLimit, leftContourLimit, rightContourLimit):
+    bottom = rightContourLimit
     leftLineF = strToNdarray(fy1)
     rightLineF = strToNdarray(fy2)
     midLineFactor = strToNdarray(midLineFactor)
     pylab.figure(figsize=(16, 9))
-    drawFunction(leftLineF, numList(leftTopP[1], leftBottomP[1]))
-    drawFunction(rightLineF, numList(leftTopP[1], rightBottomP[1]))
-    drawFunction(midLineFactor, numList(leftTopP[1], rightBottomP[1]))
-    yList = np.linspace(top, bottom, count+1, endpoint=False)[1:]
-    # yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0, 350])
+    drawFunction(leftLineF, numList(topLimit, leftContourLimit))
+    drawFunction(rightLineF, numList(topLimit, rightContourLimit))
+    drawFunction(midLineFactor, numList(topLimit, rightContourLimit))
+    yList = np.linspace(topLimit, bottom, count+1, endpoint=False)[1:]
     for y in yList:
         normalLineF, x = normalLine(midLineFactor, y)
-        xRange = numList((getIntersection(leftLineF.copy(), normalLineF, bottom, top)[0]),
-                         (getIntersection(rightLineF.copy(), normalLineF, bottom, top)[0]))
+        xRange = numList((getIntersection(leftLineF.copy(), normalLineF, bottom, topLimit)[0]),
+                         (getIntersection(rightLineF.copy(), normalLineF, bottom, topLimit)[0]))
+        print(leftLineF)
         drawNormalLine(normalLineF, xRange)
-    pylab.ylim(0, image_ori_height)
+    pylab.ylim(image_ori_height, 0)
     pylab.xlim(0, image_ori_width)
     pylab.xlabel('')
     pylab.ylabel('')
@@ -474,51 +458,5 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, pic_show_width, pic_
     pylab.close()
     sio.close()
     rList = dataExport(leftLineF, rightLineF,
-                       midLineFactor, yList, bottom, top)
+                       midLineFactor, yList, bottom, topLimit)
     return src, rList, yList.tolist()
-
-
-def numList(p1, p2):
-    if p1 < p2:
-        return (range(int(p1), int(p2)))
-    else:
-        return (range(int(p2), int(p1)))
-
-
-def drawNormalLine(yFactor, x):
-    xFactor = np.array([1/yFactor[0], -yFactor[1]/yFactor[0]])
-    print(yFactor, xFactor)
-    F = np.poly1d(xFactor)
-    fY = F(x)
-    pylab.plot(x, fY,  'red', label='')
-
-
-def drawRadiusPic(fy1, fy2, midLineFactor, leftTopP, leftBottomP, rightBottomP):
-    leftLineF = strToNdarray(fy1)
-    rightLineF = strToNdarray(fy2)
-    midLineFactor = strToNdarray(midLineFactor)
-    pylab.figure(figsize=(16, 9))
-    drawFunction(leftLineF, numList(leftTopP[1], leftBottomP[1]))
-    drawFunction(rightLineF, numList(leftTopP[1], rightBottomP[1]))
-    drawFunction(midLineFactor, numList(leftTopP[1], rightBottomP[1]))
-    yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0, 350])
-    for y in yList:
-        normalLineF, x = normalLine(midLineFactor, y)
-        xRange = numList((getIntersection(leftLineF.copy(), normalLineF)[0]),
-                         (getIntersection(rightLineF.copy(), normalLineF)[0]))
-        print(xRange)
-        drawNormalLine(normalLineF, xRange)
-    pylab.ylim(0, 720)
-    pylab.xlim(0, 1280)
-    pylab.xlabel('')
-    pylab.ylabel('')
-    pylab.axis('off')
-    pylab.margins(0.0)
-    sio = BytesIO()
-    pylab.savefig(sio, format='png', bbox_inches='tight', pad_inches=0.0)
-    data = base64.encodebytes(sio.getvalue()).decode()
-    src = str(data)
-    # # 记得关闭，不然画出来的图是重复的
-    pylab.close()
-    sio.close()
-    return src

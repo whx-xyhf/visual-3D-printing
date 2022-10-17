@@ -60,14 +60,8 @@ def drawRadiusPic():
     topLimit = int(limit[0])
     leftContourLimit = int(limit[1])
     rightContourLimit = int(limit[2])
-    # points = request.get_json()['points']
-    # leftTopP = points[0]
-    # leftBottomP = points[1]
-    # rightBottomP = points[2]
     img_ori_width = float(request.get_json()['img_ori_width'])
     img_ori_height = float(request.get_json()['img_ori_height'])
-    # pic_show_width = float(request.get_json()['show_width'])
-    # pic_show_height = float(request.get_json()['show_height'])
     count = int(request.get_json()['count'])
     print(limit, topLimit, leftContourLimit, rightContourLimit)
     src, rList, yList = edgeGetServer.drawRadiusPic(count, img_ori_width, img_ori_height,

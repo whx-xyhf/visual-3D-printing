@@ -25,7 +25,7 @@
                     <span slot="label"><i class="el-icon-s-tools"></i> TOOLS</span>
                     <div class="algorithm" :style="{'border': active_view_index == 0?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Extraction &nbsp;</div> 
-                        <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getSilhouette"></div> -->
+                        <div class=" runIcon el-icon-video-play" title="Run" @click="getSilhouette"></div>
                         <!-- <div class="algorithm_title">Image Contour Extraction</div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
@@ -48,7 +48,7 @@
 
                     <div class="algorithm" :style="{'border': active_view_index == 1?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Fitting &nbsp;</div> 
-                        <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div> -->
+                        <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div>
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
                                 <div class="algorithm_content_demonstration">Fitting Strength:</div>
@@ -60,7 +60,7 @@
 
                     <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Calculate Radius &nbsp;</div> 
-                        <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getRadiusImg"></div> -->
+                        <div class=" runIcon el-icon-video-play" title="Run" @click="getRadiusImg"></div>
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
                                 <div class="algorithm_content_demonstration">Radius Count:</div>

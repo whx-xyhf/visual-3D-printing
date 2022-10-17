@@ -2,6 +2,10 @@
 client/node_modules
 /dist
 client/package-lock.json
+server/images
+server/.idea
+server/algorithm/__pycache__
+server/test.py
 
 
 # local env files

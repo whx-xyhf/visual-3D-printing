@@ -35,12 +35,6 @@ def getImageSilhouette():
 @app.route('/getFixContour', methods=['GET', 'POST'])
 def getFixContour():
     file = request.files.get('file')
-    # points = request.form.get('points').split(',')
-    # pic_width = float(request.form.get('width'))
-    # pic_height = float(request.form.get('height'))
-    # leftTopP = [float(points[0]), float(points[1])]
-    # leftBottomP = [float(points[2]), float(points[3])]
-    # rightBottomP = [float(points[4]), float(points[5])]
     fitting_strength = int(request.form.get('fitting_strength'))
     fy1, fy2, fy3, message, src, topLimit, leftContourLimit, rightContourLimit = edgeGetServer.getFinalContour(
         file.read(), fitting_strength)

@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 
 
 def sectionContourDraw(x, y, fitting_strength):
-    if(x == [] or y == []):
+    if x == [] or y == []:
         return ''
     Factor = np.polyfit(y, x, fitting_strength)
     F = np.poly1d(Factor)
@@ -27,7 +27,7 @@ def functionFitting(x, y):
     输入：(x, y)分别为拟合函数的坐标轴数据
     输出：在原画布上添加该函数线段
     '''
-    if(x == [] or y == []):
+    if x == [] or y == []:
         return ''
     Factor = np.polyfit(y, x, 8)
     drawFunction(Factor, y)
@@ -186,6 +186,7 @@ def getFinalContour(image_buffer,  fitting_strength):
     src = str(data)
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
+    value = sio.getvalue()
     sio.close()
     return fy1, fy2, fy3, message, src, topLimit, leftContourLimit, rightContourLimit
 
@@ -238,7 +239,8 @@ def getBottomLineByColumn(imgMat):
 
 
 def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_size=3):
-    img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
+    # img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
+    img = cv.imread(image_buffer)
     image_width = img.shape[1]
     image_height = img.shape[0]
     new_grayImage = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -308,8 +310,9 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
     src = str(data)
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
+    value = sio.getvalue()
     sio.close()
-    return src
+    return src, value
 
 
 def normalLine(factor, y):

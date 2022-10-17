@@ -445,7 +445,6 @@ def numList(p1, p2):
 
 def drawNormalLine(yFactor, x):
     xFactor = np.array([1/yFactor[0], -yFactor[1]/yFactor[0]])
-    # print(yFactor, xFactor)
     F = np.poly1d(xFactor)
     fY = F(x)
     pylab.plot(x, fY,  'red', label='')

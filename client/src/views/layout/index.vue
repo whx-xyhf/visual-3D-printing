@@ -25,7 +25,7 @@
                     <span slot="label"><i class="el-icon-s-tools"></i> TOOLS</span>
                     <div class="algorithm" :style="{'border': active_view_index == 0?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Extraction &nbsp;</div> 
-                        <div class=" runIcon el-icon-video-play" title="Run" @click="getSilhouette"></div>
+                        <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getSilhouette"></div> -->
                         <!-- <div class="algorithm_title">Image Contour Extraction</div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
@@ -48,7 +48,7 @@
 
                     <div class="algorithm" :style="{'border': active_view_index == 1?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Fitting &nbsp;</div> 
-                        <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div>
+                        <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
                                 <div class="algorithm_content_demonstration">Fitting Strength:</div>
@@ -60,7 +60,7 @@
 
                     <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Calculate Radius &nbsp;</div> 
-                        <div class=" runIcon el-icon-video-play" title="Run" @click="getRadiusImg"></div>
+                        <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getRadiusImg"></div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
                                 <div class="algorithm_content_demonstration">Radius Count:</div>
@@ -69,6 +69,7 @@
                             </div>
                         </div>
                     </div>
+                    <button @click="getAll">Apply</button>
                     <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}">
                         <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Radius Data &nbsp;</div>
                         <el-table
@@ -121,7 +122,7 @@
                 <!-- <div class="main_image_text filename">Origin Picture</div> -->
             </div>
 
-            <div class="main_img_box" style="width:100%;height:100%;z-index:2" :style="{'display':imageURl1.length>0?'block':'none'}" ref="imgbox1" @mouseover="isActive(1)" @mouseout="noActive">
+            <div class="main_img_box" style="width:50%;height:50%;z-index:2" :style="{'display':imageURl1.length>0?'block':'none'}" ref="imgbox1" @mouseover="isActive(1)" @mouseout="noActive">
                 <img :src="imageURl1" alt="" srcset=""  id="img" ref="img1"/>
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(1)">
@@ -130,7 +131,7 @@
                 <!-- <div class="main_image_text filename">Contour Extraction</div> -->
             </div>
 
-            <div class="main_img_box" style="width:100%;height:100%;z-index:3" :style="{'display':imageURl2.length>0?'block':'none'}" ref="imgbox2"  @mouseover="isActive(2)" @mouseout="noActive">
+            <div class="main_img_box" style="width:50%;height:50%;z-index:3" :style="{'display':imageURl2.length>0?'block':'none'}" ref="imgbox2"  @mouseover="isActive(2)" @mouseout="noActive">
                 <img :src="imageURl2" alt="" srcset=""  id="img" ref="img2"/>
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(2)">
@@ -139,7 +140,7 @@
                 <!-- <div class="main_image_text filename">Image Contour Fitting</div> -->
             </div>
 
-            <div class="main_img_box" style="width:100%;height:100%;z-index:4" :style="{'display':imageURl3.length>0?'block':'none'}" ref="imgbox3"  @mouseover="isActive(3)" @mouseout="noActive">
+            <div class="main_img_box" style="width:50%;height:50%;z-index:4" :style="{'display':imageURl3.length>0?'block':'none'}" ref="imgbox3"  @mouseover="isActive(3)" @mouseout="noActive">
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(3)"></i>
                 </div>
@@ -223,6 +224,35 @@ export default {
                 }
             }
         },
+
+        getAll(){
+            const file = document.getElementById('fileInput').files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('low_Threshold', this.low_Threshold);
+            formData.append('height_Threshold', this.height_Threshold);
+            formData.append('kernel_size', this.kernel_size)
+            formData.append('fitting_strength', this.fitting_strength)
+            formData.append('count', this.radius_count)
+            let config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+            this.$axios.post('runAllProcess', formData, config)
+            .then(res=>{
+                if(res.data.code == 200){
+                    if(this.fullScreenFlag){
+                        // this.fullScreenFlag = false;
+                        this.fullScreen(0);
+                    }
+                    this.imageURl1 = 'data:image/png;base64,' +  res.data.data.src1;
+                    this.imageURl2 =  'data:image/png;base64,' +  res.data.data.src2;
+                    this.imageURl3 =  'data:image/png;base64,' +  res.data.data.src3;
+                }
+            })
+        },
+
         getSilhouette(){
             const file = document.getElementById('fileInput').files[0];
             const formData = new FormData();
@@ -246,22 +276,6 @@ export default {
                 }
             })
         },
-        // changeSwitch(value){
-        //     if(value){
-        //         this.points = [];
-        //         const width = this.$refs.img1.clientWidth;
-        //         const height = this.$refs.img1.clientHeight;
-        //         this.$refs.svg1.style.width = width;
-        //         this.$refs.svg1.style.height = height;
-        //         this.$refs.svg1.onmousedown = (e)=>{
-        //             this.points.push([e.offsetX, e.offsetY]);
-        //         }
-        //     }
-        //     else{
-        //         this.points = [];
-        //         this.$refs.svg1.onmousedown = null;
-        //     }
-        // },
         getFinalContour(){
             const file = this.base64toFile(this.imageURl1, this.fileName);
             const formData = new FormData();

@@ -176,11 +176,12 @@ def getFinalContour(image_buffer,  fitting_strength):
     if fy3 == '':
         message += 'midLine is wrong'+'\n'
     pylab.ylim(image_height, 0)
-    pylab.xlim(0, image_width)
+    pylab.xlim(leftContourLimit - 10, image_width - rightContourLimit - 10)
     pylab.xlabel('')
     pylab.ylabel('')
     pylab.axis('off')
     sio = BytesIO()
+    # pylab.show()
     pylab.savefig(sio, format='png', bbox_inches='tight', pad_inches=0.0)
     data = base64.encodebytes(sio.getvalue()).decode()
     src = str(data)
@@ -188,7 +189,7 @@ def getFinalContour(image_buffer,  fitting_strength):
     pylab.close()
     value = sio.getvalue()
     sio.close()
-    return fy1, fy2, fy3, message, src, topLimit, leftContourLimit, rightContourLimit
+    return fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, src, value
 
 
 def splitArray(inputYArray, inputXArray):
@@ -239,8 +240,8 @@ def getBottomLineByColumn(imgMat):
 
 
 def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_size=3):
-    # img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
-    img = cv.imread(image_buffer)
+    img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
+    # img = cv.imread(image_buffer)
     image_width = img.shape[1]
     image_height = img.shape[0]
     new_grayImage = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -445,7 +446,6 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
         normalLineF, x = normalLine(midLineFactor, y)
         xRange = numList((getIntersection(leftLineF.copy(), normalLineF, bottom, topLimit)[0]),
                          (getIntersection(rightLineF.copy(), normalLineF, bottom, topLimit)[0]))
-        print(leftLineF)
         drawNormalLine(normalLineF, xRange)
     pylab.ylim(image_ori_height, 0)
     pylab.xlim(0, image_ori_width)
@@ -463,3 +463,13 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
     rList = dataExport(leftLineF, rightLineF,
                        midLineFactor, yList, bottom, topLimit)
     return src, rList, yList.tolist()
+
+
+def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strength=8, count=20, kernel_size=3):
+    src1, image_buffer1 = getSilhouette(image_buffer, low_Threshold, height_Threshold, kernel_size)
+    fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, src2, image_buffer2 = getFinalContour(image_buffer1, fitting_strength)
+    img = cv.imdecode(np.frombuffer(image_buffer2, np.uint8), cv.IMREAD_COLOR)
+    src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3), topLimit, leftContourLimit, rightContourLimit)
+    return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
+
+runAll('../images/1.jpg')

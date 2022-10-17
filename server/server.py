@@ -110,6 +110,4 @@ def runAllProcess():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
-    globalTopLimit = 0
-    globalLeftContourLimit = 0
-    globalRightContourLimit = 0
+

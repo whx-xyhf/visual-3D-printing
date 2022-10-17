@@ -484,4 +484,4 @@ def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strengt
     src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3), topLimit, leftContourLimit, rightContourLimit)
     return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
 
-runAll('../images/1.jpg')
+# runAll('./images/1.jpg')

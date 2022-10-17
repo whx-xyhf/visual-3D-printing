@@ -9,7 +9,7 @@ from scipy.signal import savgol_filter
 import scipy.signal as signal
 from collections import Counter
 import itertools
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 
 def sectionContourDraw(x, y, fitting_strength):
@@ -270,8 +270,8 @@ def imgPatch(img, leftC, rightC, topLimit):
 
 
 def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_size=3):
-    img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
-    # img = cv.imread(image_buffer)
+    # img = cv.imdecode(np.frombuffer(image_buffer, np.uint8), cv.IMREAD_COLOR)
+    img = cv.imread(image_buffer)
     image_width = img.shape[1]
     image_height = img.shape[0]
     new_grayImage = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -487,9 +487,9 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
 def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strength=8, count=20, kernel_size=3):
     src1, image_buffer1 = getSilhouette(image_buffer, low_Threshold, height_Threshold, kernel_size)
     fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, src2, image_buffer2 = getFinalContour(image_buffer1, fitting_strength)
-    img = cv.imdecode(np.frombuffer(image_buffer2, np.uint8), cv.IMREAD_COLOR)
-    src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3), topLimit, leftContourLimit, rightContourLimit)
-    return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
+    # img = cv.imdecode(np.frombuffer(image_buffer2, np.uint8), cv.IMREAD_COLOR)
+    # src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3), topLimit, leftContourLimit, rightContourLimit)
+    # return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
 
 
 if __name__ == '__main__':

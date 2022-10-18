@@ -502,9 +502,9 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
     for y in yList:
         normalLineF, x = normalLine(midLineFactor, y)
         leftIntersection = getIntersection(
-            leftLineF.copy(), normalLineF, bottom, topLimit)
+            leftLineF.copy(), normalLineF, leftContourLimit, topLimit)
         rightIntersection = getIntersection(
-            rightLineF.copy(), normalLineF, bottom, topLimit)
+            rightLineF.copy(), normalLineF, leftContourLimit, topLimit)
         if leftIntersection[1] == 0 or rightIntersection[1] == 0:
             continue
         xRange = numList(leftIntersection[0], rightIntersection[0])

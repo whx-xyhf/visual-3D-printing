@@ -19,12 +19,10 @@
     </div>
     </el-header>
     <el-container>
-        <el-aside width="300px" style="height:calc(100vh - 64px);padding:0 4px">
-            <el-tabs v-model="activeTabName">
-                <el-tab-pane name="tool" style="padding:0 10px; overflow-y:auto">
-                    <span slot="label"><i class="el-icon-s-tools"></i> TOOLS</span>
+        <el-aside width="300px" style="height:calc(100vh - 64px);padding:5px 5px">
+            
                     <div class="algorithm" :style="{'border': active_view_index == 0?'1px solid #5CB6FF':'1px solid #fff'}">
-                        <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Extraction &nbsp;</div> 
+                        <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Edge Detection &nbsp;</div> 
                         <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getSilhouette"></div> -->
                         <!-- <div class="algorithm_title">Image Contour Extraction</div> -->
                         <div class="algorithm_content">
@@ -47,7 +45,7 @@
                     </div>
 
                     <div class="algorithm" :style="{'border': active_view_index == 1?'1px solid #5CB6FF':'1px solid #fff'}">
-                        <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Image Contour Fitting &nbsp;</div> 
+                        <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Contour Fitting &nbsp;</div> 
                         <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
@@ -59,56 +57,68 @@
                     </div>
 
                     <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}">
-                        <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Calculate Radius &nbsp;</div> 
+                        <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Diameter &nbsp;</div> 
                         <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getRadiusImg"></div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
-                                <div class="algorithm_content_demonstration">Radius Count:</div>
-                                <el-slider v-model="radius_count" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="100" :min="2" ></el-slider>
-                            <div class="sliderValue" contenteditable="true" id="radius_count">{{radius_count}}</div>
+                                <div class="algorithm_content_demonstration">Diameter Count:</div>
+                                <el-input v-model="radius_count" type="number" size="mini" style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
+
+                                <!-- <el-slider v-model="radius_count" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="100" :min="2" ></el-slider>
+                            <div class="sliderValue" contenteditable="true" id="radius_count">{{radius_count}}</div> -->
                             </div>
+                            <div class="algorithm_content_sliderItem">
+                                <div class="algorithm_content_demonstration">Real Diameter:</div>
+                                <el-input v-model="realDiameter" type="number" size="mini" style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
+                                <el-button type="primary" size="mini" @click="getAll">Apply</el-button>
+                            </div>
+
                         </div>
                     </div>
-                    <button @click="getAll">Apply</button>
-                    <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}">
-                        <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Radius Data &nbsp;</div>
-                        <el-table
-                            :data="tableData"
-                            height="auto"
-                            border
-                            style="width: 100%">
-                            <template slot="empty">
-                                <el-empty :image-size="30" description='empty'></el-empty>
-                            </template>
-                            <el-table-column
-                            prop="y"
-                            label="Y"
-                            width="60">
-                            </el-table-column>
-                            <el-table-column
-                            prop="lr"
-                            label="Left Radius"
-                            width="70">
-                            </el-table-column>
-                            <el-table-column
-                            prop="rr"
-                            label="Right Radius"
-                            width="70">
-                            </el-table-column>
-                            <el-table-column
-                            prop="r"
-                            label="Radius"
-                            width="70">
-                            </el-table-column>
-                        </el-table>
-                    </div>
+                    
+                    <!-- <el-button type="primary" size="mini" @click="getAll">Reset</el-button> -->
+                    <div>&nbsp;</div>
+                    <el-tabs v-model="activeTabName">
+                        <el-tab-pane name="data" style="padding:0 10px; overflow-y:auto">
+                            <span slot="label"><i class="el-icon-s-grid"></i> DATASETS</span>
+                            <el-table
+                                :data="tableData"
+                                height="auto"
+                                border
+                                style="width: 100%">
+                                <template slot="empty">
+                                    <el-empty :image-size="30" description='empty'></el-empty>
+                                </template>
+                                <el-table-column
+                                prop="Distance"
+                                label="Distance"
+                                width="75">
+                                </el-table-column>
+                                <el-table-column
+                                prop="RealDiameter"
+                                label="RealDiameter"
+                                width="100">
+                                </el-table-column>
+                                <el-table-column
+                                prop="Diameter"
+                                label="Diameter"
+                                width="100">
+                                </el-table-column>
+                            </el-table>
+                        </el-tab-pane>
 
-                </el-tab-pane>
+                        <el-tab-pane label="DATASETS" name="graph" style="padding:0 10px; overflow-y:auto">
+                            <span slot="label"><i class="el-icon-s-data"></i> Graph</span>
+                            <div id="canvasContainer" style="width:100%;height:200px">
 
-                <el-tab-pane label="DATASETS" name="data" style="padding:0 10px; overflow-y:auto">
-                    <span slot="label"><i class="el-icon-s-data"></i> DATASETS</span>
-                </el-tab-pane>
-            </el-tabs>
+                            </div>
+                        </el-tab-pane>
+                    </el-tabs>
+
+                    <!-- <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}"> -->
+                        <!-- <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Diameter Data &nbsp;</div> -->
+                        
+                    <!-- </div> -->
         </el-aside>
         <el-main style="height:calc(100vh - 64px); position:relative; width: calc(100% - 300px);padding:0;box-sizing:border-box;background: linear-gradient(rgb(51, 51, 51), rgb(153, 153, 153));" class="main">
             <div class="main_image_text triangle" :style="{'display':imageURl0.length>0?'block':'none'}"></div>
@@ -163,12 +173,12 @@ export default {
             imageURl1:'',
             imageURl2:'',
             imageURl3:'',
-            activeTabName: 'tool',
+            activeTabName: 'data',
             low_Threshold: 50,
             height_Threshold: 150,
             kernel_size:3,
             area_select:false,
-            fitting_strength:8,
+            fitting_strength:10,
             points1:[],
             points2:[],
             limit:[],
@@ -179,7 +189,9 @@ export default {
             arae_select_rect1:{x:0,y:0,width:0,height:0},
             active_view_index:-1,
             fullScreenFlag:true,
-            tableData:[]
+            tableData:[],
+            realDiameter: 1,
+            myChart:null,
         }
     },
     methods:{
@@ -249,8 +261,43 @@ export default {
                     this.imageURl1 = 'data:image/png;base64,' +  res.data.data.src1;
                     this.imageURl2 =  'data:image/png;base64,' +  res.data.data.src2;
                     this.imageURl3 =  'data:image/png;base64,' +  res.data.data.src3;
+                    let rate = this.realDiameter / Number(res.data.data.r[0])
+                    this.tableData = res.data.data.r.map((v, index)=>({
+                        Diameter:Number(v).toFixed(2),
+                        Distance:Number(res.data.data.y[index]).toFixed(2),
+                        RealDiameter: rate * Number(v)
+                    }))
+
                 }
             })
+        },
+
+        drawLine(){
+            if (this.myChart != null && this.myChart != "" && this.myChart != undefined) {
+                this.myChart.dispose();//销毁
+            }
+            setTimeout(()=>{
+                this.myChart = this.$echarts.init(document.getElementById('canvasContainer'));
+                let distance = this.tableData.map(v=> v['Distance']);
+                let realDiameter = this.tableData.map(v=> v['RealDiameter']);
+                let option = {
+                    xAxis: {
+                        type: 'value',
+                        data: distance
+                    },
+                    yAxis: {
+                        type: 'value',
+                    },
+                    series: [
+                        {
+                        data: realDiameter,
+                        type: 'line'
+                        }
+                    ]
+                };
+                this.myChart.setOption(option);
+            }, 500)
+            
         },
 
         getSilhouette(){
@@ -461,6 +508,15 @@ export default {
             return v[j]
         }))
         },
+    },
+    watch:{
+        tableData(){
+            this.drawLine();
+        },
+        activeTabName(){
+            if(this.activeTabName == 'graph')
+                this.drawLine();
+        }
     }
 }
 </script>
@@ -534,7 +590,7 @@ export default {
     float:left;
     height:auto;
     width:100%;
-    margin-bottom:10px;
+    /* margin-bottom:10px; */
     box-sizing: border-box;
     /* border-top:1px solid #ccc; */
     border-bottom:1px solid #ccc !important;
@@ -563,7 +619,7 @@ export default {
     border-bottom:1px solid #ccc;
 }
 .algorithm_title{
-    margin-bottom:10px;
+    /* margin-bottom:10px; */
     font-weight: 500;
     font-size: 0.875rem;
 }

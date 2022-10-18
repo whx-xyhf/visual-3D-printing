@@ -9,8 +9,8 @@ from scipy.signal import savgol_filter
 import scipy.signal as signal
 from collections import Counter
 import itertools
-
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from scipy.integrate import quad
 matplotlib.use('Agg')
 
 
@@ -148,8 +148,7 @@ def getFinalContour(image_buffer,  fitting_strength):
         rightContour[1].append(xy[1][i][-1])
         pixelStatistics.append(xy[0][i][-1]-xy[0][i][0])
 
-    bottom = leftContour[1][len(leftContour[1]) - 1] + 20
-
+    bottom = (leftContour[1][-1]+rightContour[1][-1])//2
 
     der1Contour = np.diff(pixelStatistics)
     topLimit = getTopLimit(img, 255)
@@ -173,13 +172,13 @@ def getFinalContour(image_buffer,  fitting_strength):
     leftContour[0] = leftContour[0][topLimit:leftContourLimit]
     leftContour[1] = leftContour[1][topLimit:leftContourLimit]
 
-
-
     der1midLine = np.diff(midLine[0])
+    # 中心线突变点计算
     for i in signal.argrelextrema(der1midLine, np.greater)[0]:
         if der1midLine[i] > 150:
             midLine[0] = midLine[0][:i]
             midLine[1] = midLine[1][:i]
+            # bottom = i
             break
     for i in range(len(midLine[1])):
         if midLine[1][i] >= topLimit:
@@ -188,19 +187,9 @@ def getFinalContour(image_buffer,  fitting_strength):
             break
     left = min(leftContour[0]) - 30
     right = max(rightContour[0]) + 30
-    # leftContour[0] = leftContour[0] - left + 10
-    # rightContour[0] = rightContour[0] - left + 10
-    # midLine[0] = midLine[0] - left + 10
 
-    # width = right - left + 20
-    # height = image_height - bottom
     pylab.figure(figsize=(16, 9))
 
-    # print(leftContourLimit, leftContour[0])
-    # leftContour[0] = leftContour[0] - leftContourLimit + 10
-    # rightContour[0] = rightContour[0] - leftContourLimit + 10
-    # midLine[0] = midLine[0] - leftContourLimit + 10
-    # pylab.plot(image[0], image[1], 'w')
     fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
     fy2 = sectionContourDraw(
         rightContour[0], rightContour[1], fitting_strength)
@@ -409,10 +398,6 @@ def strToNdarray(string):
 
 
 def dataExport(fy1, fy2, midLineFactor, yList, bottom, top):
-    # fy1 = strToNdarray(fy1)
-    # fy2 = strToNdarray(fy2)
-    # midLineFactor = strToNdarray(midLineFactor)
-    # yList = np.array([600.0, 550.0, 500.0, 450.0, 400.0])
     rList = []
     for y in yList:
         dis1 = -1.0
@@ -460,13 +445,47 @@ def getIntersection(factor1, factor2, bottomLim, topLim):
 
 
 def factorToPoly(Factor):
+    '''
+    因数转为表达式字符串
+    输入：Factor：函数的因数
+    输出：函数表达式字符串
+    '''
     string = ''
     for i in range(len(Factor)):
         if (str(Factor[i]))[0] != '-' and i != 0:
             string += '+'
         string += str(Factor[i])+'*y**'+str(len(Factor)-i-1)
-    string += '-x'
     return string
+
+
+def factorDiff(Factor):
+    """
+    因数导数计算
+    """
+    returnArray = []
+    length = len(Factor)-1
+    for i in range(length):
+        returnArray.append(Factor[i]*(length-i))
+    returnArray = np.array(returnArray)
+    return returnArray
+
+
+def arcLengthCompute(factor, lowerBound, heightBound):
+    """
+    弧长计算
+    输入：
+        factor：函数因数 
+        lowerBound：积分下界
+        heightBound：积分上界
+    输出：
+        弧长
+        误差范围
+    """
+    der1f1 = factorDiff(factor)
+    f = factorToPoly(der1f1)
+    result = quad(lambda y: (1+eval(f)**2) ** 0.5,
+                  lowerBound, heightBound)
+    return result
 
 
 def numList(p1, p2):
@@ -483,7 +502,7 @@ def drawNormalLine(yFactor, x):
     pylab.plot(x, fY,  'red', label='')
 
 
-def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFactor, topLimit, leftContourLimit, rightContourLimit,bottom, left, right):
+def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFactor, topLimit, leftContourLimit, rightContourLimit, bottom, left, right):
     bottom_ = leftContourLimit
     leftLineF = strToNdarray(fy1)
     rightLineF = strToNdarray(fy2)
@@ -493,12 +512,15 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
     fXL = FL(numList(topLimit, leftContourLimit))
     FR = np.poly1d(rightLineF)
     fXR = FR(numList(topLimit, leftContourLimit))
-    pylab.plot([fXL[0], fXR[0]], [numList(topLimit, leftContourLimit)[0], numList(topLimit, leftContourLimit)[0]],  'red', label='')
+    pylab.plot([fXL[0], fXR[0]], [numList(topLimit, leftContourLimit)[
+               0], numList(topLimit, leftContourLimit)[0]],  'red', label='')
 
     drawFunction(leftLineF, numList(topLimit, leftContourLimit))
     drawFunction(rightLineF, numList(topLimit, rightContourLimit))
     drawFunction(midLineFactor, numList(topLimit, rightContourLimit))
     yList = np.linspace(topLimit, bottom, count+1, endpoint=False)[1:]
+    # 弧长
+    arcLength = []
     for y in yList:
         normalLineF, x = normalLine(midLineFactor, y)
         leftIntersection = getIntersection(
@@ -509,6 +531,7 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
             continue
         xRange = numList(leftIntersection[0], rightIntersection[0])
         drawNormalLine(normalLineF, xRange)
+        arcLength.append(arcLengthCompute(midLineFactor, topLimit, y)[0])
 
     pylab.ylim(image_ori_height, 0)
     pylab.xlim(0, image_ori_width)
@@ -535,14 +558,15 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
 
     rList = dataExport(leftLineF, rightLineF,
                        midLineFactor, yList, bottom, topLimit)
-    yList = yList.tolist()
-    yList.insert(0, 0)
+    # yList = yList.tolist()
+    # yList.insert(0, 0)
     rList.insert(0, fXR[0] - fXL[0])
-    return src, rList, yList
+    return src, rList, arcLength
 
 
 def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strength=8, count=20, kernel_size=3):
-    src1, image_buffer1 = getSilhouette(image_buffer, low_Threshold, height_Threshold, kernel_size)
+    src1, image_buffer1 = getSilhouette(
+        image_buffer, low_Threshold, height_Threshold, kernel_size)
     fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, image_buffer2, src2,\
         bottom, left, right = getFinalContour(image_buffer1, fitting_strength)
     img = cv.imdecode(np.frombuffer(image_buffer2, np.uint8), cv.IMREAD_COLOR)

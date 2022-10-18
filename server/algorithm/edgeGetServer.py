@@ -9,6 +9,8 @@ from scipy.signal import savgol_filter
 import scipy.signal as signal
 from collections import Counter
 import itertools
+
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 matplotlib.use('Agg')
 
 
@@ -146,7 +148,8 @@ def getFinalContour(image_buffer,  fitting_strength):
         rightContour[1].append(xy[1][i][-1])
         pixelStatistics.append(xy[0][i][-1]-xy[0][i][0])
 
-    pylab.figure(figsize=(16, 9))
+    bottom = leftContour[1][len(leftContour[1]) - 1] + 20
+
 
     der1Contour = np.diff(pixelStatistics)
     topLimit = getTopLimit(img, 255)
@@ -170,6 +173,8 @@ def getFinalContour(image_buffer,  fitting_strength):
     leftContour[0] = leftContour[0][topLimit:leftContourLimit]
     leftContour[1] = leftContour[1][topLimit:leftContourLimit]
 
+
+
     der1midLine = np.diff(midLine[0])
     for i in signal.argrelextrema(der1midLine, np.greater)[0]:
         if der1midLine[i] > 150:
@@ -181,8 +186,21 @@ def getFinalContour(image_buffer,  fitting_strength):
             midLine[0] = midLine[0][i:]
             midLine[1] = midLine[1][i:]
             break
+    left = min(leftContour[0]) - 30
+    right = max(rightContour[0]) + 30
+    # leftContour[0] = leftContour[0] - left + 10
+    # rightContour[0] = rightContour[0] - left + 10
+    # midLine[0] = midLine[0] - left + 10
 
-    pylab.plot(midLine[0], midLine[1], 'b')
+    # width = right - left + 20
+    # height = image_height - bottom
+    pylab.figure(figsize=(16, 9))
+
+    # print(leftContourLimit, leftContour[0])
+    # leftContour[0] = leftContour[0] - leftContourLimit + 10
+    # rightContour[0] = rightContour[0] - leftContourLimit + 10
+    # midLine[0] = midLine[0] - leftContourLimit + 10
+    # pylab.plot(image[0], image[1], 'w')
     fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
     fy2 = sectionContourDraw(
         rightContour[0], rightContour[1], fitting_strength)
@@ -195,6 +213,7 @@ def getFinalContour(image_buffer,  fitting_strength):
         message += 'rightContour is wrong'+'\n'
     if fy3 == '':
         message += 'midLine is wrong'+'\n'
+
     pylab.ylim(image_height, 0)
     pylab.xlim(0, image_width)
     pylab.xlabel('')
@@ -203,13 +222,21 @@ def getFinalContour(image_buffer,  fitting_strength):
     sio = BytesIO()
     # pylab.show()
     pylab.savefig(sio, format='png', bbox_inches='tight', pad_inches=0.0)
-    data = base64.encodebytes(sio.getvalue()).decode()
-    src = str(data)
+    # data = base64.encodebytes(sio.getvalue()).decode()
+    # src = str(data)
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
     value = sio.getvalue()
     sio.close()
-    return fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, src, value
+    img = cv.imdecode(np.frombuffer(value, np.uint8), cv.IMREAD_COLOR)
+    img = img[:bottom, left:right]
+    # cv.imshow('img_thinning', img)
+    #
+    # cv.waitKey()
+    # cv.destroyAllWindows()
+    img = cv.imencode('.png', img)[1]
+    src = str(base64.encodebytes(img).decode())
+    return fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, value, src, bottom, left, right
 
 
 def splitArray(inputYArray, inputXArray):
@@ -401,7 +428,7 @@ def dataExport(fy1, fy2, midLineFactor, yList, bottom, top):
         if(dis1 > 0 and dis2 > 0):
             dis[0].append(dis1)
             dis[1].append(dis2)
-        rList.append(dis)
+        rList.append(dis[0][0] + dis[1][0])
     return rList
 
 
@@ -462,6 +489,12 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
     rightLineF = strToNdarray(fy2)
     midLineFactor = strToNdarray(midLineFactor)
     pylab.figure(figsize=(16, 9))
+    FL = np.poly1d(leftLineF)
+    fXL = FL(numList(topLimit, leftContourLimit))
+    FR = np.poly1d(rightLineF)
+    fXR = FR(numList(topLimit, leftContourLimit))
+    pylab.plot([fXL[0], fXR[0]], [numList(topLimit, leftContourLimit)[0], numList(topLimit, leftContourLimit)[0]],  'red', label='')
+
     drawFunction(leftLineF, numList(topLimit, leftContourLimit))
     drawFunction(rightLineF, numList(topLimit, rightContourLimit))
     drawFunction(midLineFactor, numList(topLimit, rightContourLimit))
@@ -476,6 +509,7 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
             continue
         xRange = numList(leftIntersection[0], rightIntersection[0])
         drawNormalLine(normalLineF, xRange)
+
     pylab.ylim(image_ori_height, 0)
     pylab.xlim(0, image_ori_width)
     pylab.xlabel('')
@@ -484,24 +518,36 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
     pylab.margins(0.0)
     sio = BytesIO()
     pylab.savefig(sio, format='png', bbox_inches='tight', pad_inches=0.0)
-    data = base64.encodebytes(sio.getvalue()).decode()
-    src = str(data)
+    # data = base64.encodebytes(sio.getvalue()).decode()
+    # src = str(data)
+    value = sio.getvalue()
     # # 记得关闭，不然画出来的图是重复的
     pylab.close()
     sio.close()
+    img = cv.imdecode(np.frombuffer(value, np.uint8), cv.IMREAD_COLOR)
+    img = img[:bottom, left:right]
+    # cv.imshow('img_thinning', img)
+    #
+    # cv.waitKey()
+    # cv.destroyAllWindows()
+    img = cv.imencode('.png', img)[1]
+    src = str(base64.encodebytes(img).decode())
+
     rList = dataExport(leftLineF, rightLineF,
                        midLineFactor, yList, bottom, topLimit)
-    return src, rList, yList.tolist()
+    yList = yList.tolist()
+    yList.insert(0, 0)
+    rList.insert(0, fXR[0] - fXL[0])
+    return src, rList, yList
 
 
 def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strength=8, count=20, kernel_size=3):
-    src1, image_buffer1 = getSilhouette(
-        image_buffer, low_Threshold, height_Threshold, kernel_size)
-    fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, src2, image_buffer2 = getFinalContour(
-        image_buffer1, fitting_strength)
+    src1, image_buffer1 = getSilhouette(image_buffer, low_Threshold, height_Threshold, kernel_size)
+    fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, image_buffer2, src2,\
+        bottom, left, right = getFinalContour(image_buffer1, fitting_strength)
     img = cv.imdecode(np.frombuffer(image_buffer2, np.uint8), cv.IMREAD_COLOR)
-    src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(
-        fy1), str(fy2), str(fy3), topLimit, leftContourLimit, rightContourLimit)
+    src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3),
+                                       topLimit, leftContourLimit, rightContourLimit, bottom, left, right)
     return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
 
 

@@ -483,8 +483,8 @@ def drawNormalLine(yFactor, x):
     pylab.plot(x, fY,  'red', label='')
 
 
-def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFactor, topLimit, leftContourLimit, rightContourLimit):
-    bottom = leftContourLimit
+def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFactor, topLimit, leftContourLimit, rightContourLimit,bottom, left, right):
+    bottom_ = leftContourLimit
     leftLineF = strToNdarray(fy1)
     rightLineF = strToNdarray(fy2)
     midLineFactor = strToNdarray(midLineFactor)

@@ -132,30 +132,31 @@ def getFinalContour(image_buffer,  fitting_strength):
 
     der1Contour = np.diff(pixelStatistics)
     topLimit = getTopLimit(img, 255)
-
+    # 上界适应性调整
     fittingAssessL = 0
-    fittingAssessL = 0
+    fittingAssessR = 0
     fittingAssessList = []
     for i in range(int(img.shape[0]/100)):
-        y1 = leftContour[1][topLimit-i:]
-        x1 = leftContour[0][topLimit-i:]
+        y1 = leftContour[1][topLimit+i:]
+        x1 = leftContour[0][topLimit+i:]
         Factor = np.polyfit(y1, x1, 12)
         F = np.poly1d(Factor)
         fX1 = F(y1)
-        
-        y2 = rightContour[1][topLimit-i:]
-        x2 = rightContour[0][topLimit-i:]
+
+        y2 = rightContour[1][topLimit+i:]
+        x2 = rightContour[0][topLimit+i:]
         Factor = np.polyfit(y2, x2, 12)
         F = np.poly1d(Factor)
         fX2 = F(y2)
-        fittingAssessList.append(fittingAssessL/fittingAssessment(fX1, x2))
-        fittingAssessL = fittingAssessment(fX1, x2)
-    leftContourLimit -= fittingAssessList.index(max(fittingAssessList))
-
+        fittingAssessList.append(
+            fittingAssessL/fittingAssessment(fX1, x1)+fittingAssessR/fittingAssessment(fX2, x2))
+        fittingAssessL = fittingAssessment(fX1, x1)
+        fittingAssessR = fittingAssessment(fX2, x2)
+    topLimit += fittingAssessList.index(max(fittingAssessList))
+    print("topLimit:", topLimit)
 
     # 管口直径获取
     nozzleDiameter = list(Counter(pixelStatistics[:topLimit]).keys())[0]
-
 
     leftContourLimit = len(xy[1])
     bottom = leftContourLimit+30

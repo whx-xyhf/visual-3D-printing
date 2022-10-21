@@ -558,6 +558,7 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
     # yList = yList.tolist()
     # yList.insert(0, 0)
     rList.insert(0, fXR - fXL)
+    print(len(rList), len(arcLength))
     return src, rList, arcLength
 
 

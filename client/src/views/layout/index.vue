@@ -258,9 +258,9 @@ export default {
                     this.imageURl3 =  'data:image/png;base64,' +  res.data.data.src3;
                     let rate = this.realDiameter / Number(res.data.data.r[0])
                     this.tableData = res.data.data.r.map((v, index)=>({
-                        Diameter:Number(v).toFixed(2),
-                        Distance:Number(res.data.data.y[index]).toFixed(2),
-                        RealDiameter: rate * Number(v)
+                        Diameter:Number(v).toFixed(4),
+                        Distance:Number(res.data.data.y[index]).toFixed(4),
+                        RealDiameter: (rate * Number(v)).toFixed(4)
                     }))
 
                 }
@@ -524,8 +524,8 @@ export default {
         handleDownload() {
             if(this.tableData.length > 0){
                 import('@/vendor/Export2Excel').then(excel => {
-                    const tHeader = ['Y', 'Left Radius', 'Right Radius', 'Radius'];
-                    const filterVal = ['y', 'lr', 'rr', 'r'];
+                    const tHeader = ['Distance', 'RealDiameter', 'Diameter'];
+                    const filterVal = ['Distance', 'RealDiameter', 'Diameter'];
                     
                     const data = this.formatJson(filterVal)
                     excel.export_json_to_excel({

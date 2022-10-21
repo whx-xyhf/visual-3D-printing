@@ -24,7 +24,6 @@ def sectionContourDraw(x, y, fitting_strength):
 
 def drawFunction(Factor, y):
     F = np.poly1d(Factor)
-    print(Factor)
     fX = F(y)
     pylab.plot(fX, y,  'black', label='')
 
@@ -153,7 +152,7 @@ def getFinalContour(image_buffer,  fitting_strength):
         fittingAssessL = fittingAssessment(fX1, x1)
         fittingAssessR = fittingAssessment(fX2, x2)
     topLimit += fittingAssessList.index(max(fittingAssessList))
-    print("topLimit:", topLimit)
+    # print("topLimit:", topLimit)
 
     # 管口直径获取
     nozzleDiameter = list(Counter(pixelStatistics[:topLimit]).keys())[0]
@@ -559,6 +558,7 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
     # yList = yList.tolist()
     # yList.insert(0, 0)
     rList.insert(0, fXR - fXL)
+    print(len(rList), len(arcLength))
     return src, rList, arcLength
 
 
@@ -567,11 +567,17 @@ def runAll(image_buffer, low_Threshold=50, height_Threshold=150, fitting_strengt
         image_buffer, low_Threshold, height_Threshold, kernel_size)
     fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, midLineLimit, image_buffer2, src2,\
         bottom, left, right = getFinalContour(image_buffer1, fitting_strength)
-    print(fy1, fy2, fy3)
     img = cv.imdecode(np.frombuffer(image_buffer2, np.uint8), cv.IMREAD_COLOR)
     src3, rList, yList = drawRadiusPic(count, img.shape[1], img.shape[0], str(fy1), str(fy2), str(fy3),
                                        topLimit, leftContourLimit, rightContourLimit, midLineLimit, bottom, left, right)
-    return src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
+
+    img = cv.imdecode(np.frombuffer(image_buffer1, np.uint8), cv.IMREAD_COLOR)
+    img = img[:bottom, left:right]
+
+    img0 = cv.imencode('.png', img)[1]
+    src0 = str(base64.encodebytes(img0).decode())
+
+    return src0, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, img.shape[1], img.shape[0], rList, yList
 
 
 if __name__ == '__main__':

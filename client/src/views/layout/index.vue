@@ -71,56 +71,37 @@
                                 <div class="algorithm_content_demonstration">Real Diameter:</div>
                                 <el-input v-model="realDiameter" type="number" size="mini" style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
                                 <el-button type="primary" size="mini" @click="getAll">Apply</el-button>
+                                
+                                <el-table
+                                    :data="tableData"
+                                    height="auto"
+                                    border
+                                    style="width: 100%">
+                                    <template slot="empty">
+                                        <el-empty :image-size="30" description='empty'></el-empty>
+                                    </template>
+                                    <el-table-column
+                                    prop="Distance"
+                                    label="Distance"
+                                    width="80">
+                                    </el-table-column>
+                                    <el-table-column
+                                    prop="RealDiameter"
+                                    label="RealDiameter"
+                                    width="115">
+                                    </el-table-column>
+                                    <el-table-column
+                                    prop="Diameter"
+                                    label="Diameter"
+                                    width="85">
+                                    </el-table-column>
+                                </el-table>
                             </div>
 
                         </div>
                     </div>
-                    
-                    <!-- <el-button type="primary" size="mini" @click="getAll">Reset</el-button> -->
-                    <div>&nbsp;</div>
-                    <el-tabs v-model="activeTabName">
-                        <el-tab-pane name="data" style="padding:0 10px; overflow-y:auto">
-                            <span slot="label"><i class="el-icon-s-grid"></i> DATASETS</span>
-                            <el-table
-                                :data="tableData"
-                                height="auto"
-                                border
-                                style="width: 100%">
-                                <template slot="empty">
-                                    <el-empty :image-size="30" description='empty'></el-empty>
-                                </template>
-                                <el-table-column
-                                prop="Distance"
-                                label="Distance"
-                                width="75">
-                                </el-table-column>
-                                <el-table-column
-                                prop="RealDiameter"
-                                label="RealDiameter"
-                                width="100">
-                                </el-table-column>
-                                <el-table-column
-                                prop="Diameter"
-                                label="Diameter"
-                                width="100">
-                                </el-table-column>
-                            </el-table>
-                        </el-tab-pane>
-
-                        <el-tab-pane label="DATASETS" name="graph" style="padding:0 10px; overflow-y:auto">
-                            <span slot="label"><i class="el-icon-s-data"></i> Graph</span>
-                            <div id="canvasContainer" style="width:100%;height:200px">
-
-                            </div>
-                        </el-tab-pane>
-                    </el-tabs>
-
-                    <!-- <div class="algorithm" :style="{'border': active_view_index == 2?'1px solid #5CB6FF':'1px solid #fff'}"> -->
-                        <!-- <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Diameter Data &nbsp;</div> -->
-                        
-                    <!-- </div> -->
         </el-aside>
-        <el-main style="height:calc(100vh - 64px); position:relative; width: calc(100% - 300px);padding:0;box-sizing:border-box;background: linear-gradient(rgb(51, 51, 51), rgb(153, 153, 153));" class="main">
+        <el-main style="height:calc(100vh - 64px); position:relative; width: calc(100% - 300px);padding:0;box-sizing:border-box;background: #ddd;" class="main">
             <div class="main_image_text triangle" :style="{'display':imageURl0.length>0?'block':'none'}"></div>
             
             <div class="main_img_box" style="width:100%;height:100%;z-index:1" :style="{'display':imageURl0.length>0?'block':'none'}" ref="imgbox0" @mouseover="isActive(0)" @mouseout="noActive">
@@ -128,11 +109,19 @@
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(0)">
                     </i>
                 </div>
-                <img :src="imageURl0" alt="" srcset=""  id="img"  ref="img0"/>
+                <img :src="imageURl0" alt="" srcset=""  id="img"  ref="img0" style="object-fit:fill"/>
                 <!-- <div class="main_image_text filename">Origin Picture</div> -->
             </div>
 
-            <div class="main_img_box" style="width:50%;height:50%;z-index:2" :style="{'display':imageURl1.length>0?'block':'none'}" ref="imgbox1" @mouseover="isActive(1)" @mouseout="noActive">
+            <div class="main_img_box" style="width:49%;height:50%;z-index:5" :style="{'display':tableData.length>0?'block':'none'}" ref="imgbox4" @mouseover="isActive(4)" @mouseout="noActive">
+                <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px;z-index:10">
+                    <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(4)">
+                    </i>
+                </div>
+                <div id="canvasContainer" style='width:100%;height:100%;background:#fff'></div>
+            </div>
+
+            <div class="main_img_box" style="width:33%;height:50%;z-index:2" :style="{'display':imageURl1.length>0?'block':'none'}" ref="imgbox1" @mouseover="isActive(1)" @mouseout="noActive">
                 <img :src="imageURl1" alt="" srcset=""  id="img" ref="img1"/>
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(1)">
@@ -141,7 +130,7 @@
                 <!-- <div class="main_image_text filename">Contour Extraction</div> -->
             </div>
 
-            <div class="main_img_box" style="width:50%;height:50%;z-index:3" :style="{'display':imageURl2.length>0?'block':'none'}" ref="imgbox2"  @mouseover="isActive(2)" @mouseout="noActive">
+            <div class="main_img_box" style="width:33%;height:50%;z-index:3" :style="{'display':imageURl2.length>0?'block':'none'}" ref="imgbox2"  @mouseover="isActive(2)" @mouseout="noActive">
                 <img :src="imageURl2" alt="" srcset=""  id="img" ref="img2"/>
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(2)">
@@ -150,7 +139,7 @@
                 <!-- <div class="main_image_text filename">Image Contour Fitting</div> -->
             </div>
 
-            <div class="main_img_box" style="width:50%;height:50%;z-index:4" :style="{'display':imageURl3.length>0?'block':'none'}" ref="imgbox3"  @mouseover="isActive(3)" @mouseout="noActive">
+            <div class="main_img_box" style="width:33%;height:50%;z-index:4" :style="{'display':imageURl3.length>0?'block':'none'}" ref="imgbox3"  @mouseover="isActive(3)" @mouseout="noActive">
                 <div style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                     <i :class="fullScreenFlag?'el-icon-remove-outline':'el-icon-full-screen'" @click="fullScreen(3)"></i>
                 </div>
@@ -164,6 +153,7 @@
 </template>
 
 <script>
+// linear-gradient(rgb(51, 51, 51), rgb(153, 153, 153))
 export default {
     name:'Layout',
     data(){
@@ -173,7 +163,6 @@ export default {
             imageURl1:'',
             imageURl2:'',
             imageURl3:'',
-            activeTabName: 'data',
             low_Threshold: 50,
             height_Threshold: 150,
             kernel_size:3,
@@ -227,10 +216,16 @@ export default {
                 //该方法结束后图片会以data:URL格式的字符串（base64编码）存储在fr对象的result中
                 fr.readAsDataURL(e.target.files[0]);
                 fr.onloadend = ()=>{
+                    this.imageURl0 = '';
+                    this.imageURl1 = '';
+                    this.imageURl2 = '';
+                    this.imageURl3 = '';
+                    this.tableData = [];
+            
                     if(this.fullScreenFlag){
                         this.fullScreenFlag = false;
-                        this.fullScreen(0);
                     }
+                    this.fullScreen(0);
                     this.imageURl0 = fr.result;
                     
                 }
@@ -263,9 +258,9 @@ export default {
                     this.imageURl3 =  'data:image/png;base64,' +  res.data.data.src3;
                     let rate = this.realDiameter / Number(res.data.data.r[0])
                     this.tableData = res.data.data.r.map((v, index)=>({
-                        Diameter:Number(v).toFixed(2),
-                        Distance:Number(res.data.data.y[index]).toFixed(2),
-                        RealDiameter: rate * Number(v)
+                        Diameter:Number(v).toFixed(4),
+                        Distance:Number(res.data.data.y[index]).toFixed(4),
+                        RealDiameter: (rate * Number(v)).toFixed(4)
                     }))
 
                 }
@@ -278,19 +273,32 @@ export default {
             }
             setTimeout(()=>{
                 this.myChart = this.$echarts.init(document.getElementById('canvasContainer'));
-                let distance = this.tableData.map(v=> v['Distance']);
-                let realDiameter = this.tableData.map(v=> v['RealDiameter']);
+                let data = this.tableData.map(v=>[Number(v['Distance']),  v['RealDiameter']])
                 let option = {
+                    title: {
+                    text: 'Diameter',
+                    x: 'center'
+                    },
+                    grid: { // 图表距离边框的距离，可用百分比和数字（px）配置
+                        top: 30,  
+                        left: 10, 
+                        right: 60,
+                        bottom: 10,
+                        containLabel: true
+                    },
                     xAxis: {
                         type: 'value',
-                        data: distance
+                        name:'distance',
+                        nameTextStyle:{fontSize:10}
                     },
                     yAxis: {
                         type: 'value',
+                        name:'diameter',
+                        nameTextStyle:{fontSize:10}
                     },
                     series: [
                         {
-                        data: realDiameter,
+                        data: data,
                         type: 'line'
                         }
                     ]
@@ -412,6 +420,7 @@ export default {
                     this.$refs.imgbox1.style.display = 'none';
                     this.$refs.imgbox2.style.display = 'none';
                     this.$refs.imgbox3.style.display = 'none';
+                    this.$refs.imgbox4.style.display = 'none';
                     // this.$refs.imgbox0.style.zIndex = 5;
                 }
                 else if(index == 1){
@@ -423,6 +432,7 @@ export default {
                     this.$refs.imgbox1.style.display = 'block';
                     this.$refs.imgbox2.style.display = 'none';
                     this.$refs.imgbox3.style.display = 'none';
+                    this.$refs.imgbox4.style.display = 'none';
                     // this.$refs.imgbox1.style.zIndex = 5;
                 }
                 else if(index == 2){
@@ -434,6 +444,7 @@ export default {
                     this.$refs.imgbox1.style.display = 'none';
                     this.$refs.imgbox2.style.display = 'block';
                     this.$refs.imgbox3.style.display = 'none';
+                    this.$refs.imgbox4.style.display = 'none';
                     // this.$refs.imgbox2.style.zIndex = 5;
                 }
                 else if(index == 3){
@@ -445,8 +456,22 @@ export default {
                     this.$refs.imgbox1.style.display = 'none';
                     this.$refs.imgbox2.style.display = 'none';
                     this.$refs.imgbox3.style.display = 'block';
+                    this.$refs.imgbox4.style.display = 'none';
                     // this.$refs.imgbox3.style.zIndex = 5;
                     
+                }
+                else if(index == 4){
+                    this.$refs.imgbox4.style.top = 0;
+                    this.$refs.imgbox4.style.left = 0;
+                    this.$refs.imgbox4.style.width = '100%';
+                    this.$refs.imgbox4.style.height = '100%';
+                    this.$refs.imgbox0.style.display = 'none';
+                    this.$refs.imgbox1.style.display = 'none';
+                    this.$refs.imgbox2.style.display = 'none';
+                    this.$refs.imgbox3.style.display = 'none';
+                    this.$refs.imgbox4.style.display = 'block';
+                    // this.$refs.imgbox3.style.zIndex = 5;
+                    this.drawLine();
                 }
                 this.active_view_index = index;
             }
@@ -455,26 +480,37 @@ export default {
                 this.$refs.imgbox1.style.zIndex = 2;
                 this.$refs.imgbox2.style.zIndex = 3;
                 this.$refs.imgbox3.style.zIndex = 4;
+                this.$refs.imgbox4.style.zIndex = 5;
                 this.$refs.imgbox0.style.width = '50%';
                 this.$refs.imgbox0.style.height = '50%';
                 this.$refs.imgbox0.style.top = 0;
                 this.$refs.imgbox0.style.left = 0;
-                this.$refs.imgbox1.style.width = '50%';
+                this.$refs.imgbox1.style.width = '33%';
                 this.$refs.imgbox1.style.height = '50%';
-                this.$refs.imgbox1.style.top = 0;
-                this.$refs.imgbox1.style.left = '50%';
-                this.$refs.imgbox2.style.width = '50%';
+                this.$refs.imgbox1.style.top = '50%';
+                this.$refs.imgbox1.style.left = 0;
+                this.$refs.imgbox2.style.width = '33%';
                 this.$refs.imgbox2.style.height = '50%';
                 this.$refs.imgbox2.style.top = '50%';
-                this.$refs.imgbox2.style.left = 0;
-                this.$refs.imgbox3.style.width = '50%';
+                this.$refs.imgbox2.style.left = '33%';
+                this.$refs.imgbox3.style.width = '33%';
                 this.$refs.imgbox3.style.height = '50%';
                 this.$refs.imgbox3.style.top = '50%';
-                this.$refs.imgbox3.style.left = '50%';
+                this.$refs.imgbox3.style.left = '66%';
+                this.$refs.imgbox4.style.width = '50%';
+                this.$refs.imgbox4.style.height = '50%';
+                this.$refs.imgbox4.style.top = 0;
+                this.$refs.imgbox4.style.left = '49%';
+                
                 this.$refs.imgbox0.style.display = 'block';
-                if(this.imageURl1.length>0) this.$refs.imgbox1.style.display = 'block';
-                if(this.imageURl2.length>0) this.$refs.imgbox2.style.display = 'block';
-                if(this.imageURl3.length>0) this.$refs.imgbox3.style.display = 'block';
+                if(this.imageURl1.length>0){
+                    this.$refs.imgbox1.style.display = 'block';
+                    this.$refs.imgbox2.style.display = 'block';
+                    this.$refs.imgbox3.style.display = 'block';
+                    this.$refs.imgbox4.style.display = 'block';
+                    this.drawLine();
+                }
+                
                 this.active_view_index = -1;
             }
             
@@ -488,8 +524,8 @@ export default {
         handleDownload() {
             if(this.tableData.length > 0){
                 import('@/vendor/Export2Excel').then(excel => {
-                    const tHeader = ['Y', 'Left Radius', 'Right Radius', 'Radius'];
-                    const filterVal = ['y', 'lr', 'rr', 'r'];
+                    const tHeader = ['Distance', 'RealDiameter', 'Diameter'];
+                    const filterVal = ['Distance', 'RealDiameter', 'Diameter'];
                     
                     const data = this.formatJson(filterVal)
                     excel.export_json_to_excel({
@@ -513,10 +549,6 @@ export default {
         tableData(){
             this.drawLine();
         },
-        activeTabName(){
-            if(this.activeTabName == 'graph')
-                this.drawLine();
-        }
     }
 }
 </script>
@@ -566,6 +598,7 @@ export default {
     width:100%;
     height:100%;
     user-select: none;
+    background: #fff;
 }
 .main_image_text{
     color:white;

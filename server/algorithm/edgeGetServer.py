@@ -185,7 +185,7 @@ def getFinalContour(image_buffer,  fitting_strength):
             midLine[0] = midLine[0][i:]
             midLine[1] = midLine[1][i:]
             break
-    midLineLimit = len(midLine[1])+topLimit
+    midLineLimit = midLine[1][-1]
     left = min(leftContour[0]) - 30
     right = max(rightContour[0]) + 30
 
@@ -515,7 +515,7 @@ def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFac
 
     drawFunction(leftLineF, numList(topLimit, leftContourLimit))
     drawFunction(rightLineF, numList(topLimit, rightContourLimit))
-    drawFunction(midLineFactor, numList(topLimit, rightContourLimit))
+    drawFunction(midLineFactor, numList(topLimit, midLineLimit))
     yList = np.linspace(topLimit, midLineLimit, count+1, endpoint=False)[1:]
     # 弧长
     arcLength = [0]

@@ -267,7 +267,7 @@ export default {
             })
         },
 
-        drawLine(){
+        drawLine(symbol){
             if (this.myChart != null && this.myChart != "" && this.myChart != undefined) {
                 this.myChart.dispose();//销毁
             }
@@ -279,6 +279,10 @@ export default {
                     text: 'Diameter',
                     x: 'center'
                     },
+                    tooltip:{
+                    show:true,
+                    trigger: 'axis',
+                },
                     grid: { // 图表距离边框的距离，可用百分比和数字（px）配置
                         top: 30,  
                         left: 10, 
@@ -299,7 +303,9 @@ export default {
                     series: [
                         {
                         data: data,
-                        type: 'line'
+                        type: 'line',
+                        symbol:symbol,
+
                         }
                     ]
                 };
@@ -471,7 +477,7 @@ export default {
                     this.$refs.imgbox3.style.display = 'none';
                     this.$refs.imgbox4.style.display = 'block';
                     // this.$refs.imgbox3.style.zIndex = 5;
-                    this.drawLine();
+                    this.drawLine('emptyCircle');
                 }
                 this.active_view_index = index;
             }
@@ -508,7 +514,7 @@ export default {
                     this.$refs.imgbox2.style.display = 'block';
                     this.$refs.imgbox3.style.display = 'block';
                     this.$refs.imgbox4.style.display = 'block';
-                    this.drawLine();
+                    this.drawLine('none');
                 }
                 
                 this.active_view_index = -1;
@@ -547,7 +553,7 @@ export default {
     },
     watch:{
         tableData(){
-            this.drawLine();
+            this.drawLine(this.fullScreenFlag?'emptyCircle':'none');
         },
     }
 }

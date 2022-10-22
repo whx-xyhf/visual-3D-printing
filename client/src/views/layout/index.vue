@@ -27,12 +27,12 @@
                         <!-- <div class="algorithm_title">Image Contour Extraction</div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
-                                <div class="algorithm_content_demonstration">Min Threshold:</div>
+                                <div class="algorithm_content_demonstration">lowThreshold:</div>
                                 <el-slider v-model="low_Threshold" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="200" :min="10" ></el-slider>
                                 <div class="sliderValue" contenteditable="true" id="low_Threshold">{{low_Threshold}}</div>
                             </div>
                             <div class="algorithm_content_sliderItem">
-                                <div class="algorithm_content_demonstration">Max Threshold:</div>
+                                <div class="algorithm_content_demonstration">highThreshold :</div>
                                 <el-slider v-model="height_Threshold" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="1000" :min="200" ></el-slider>
                                 <div class="sliderValue" contenteditable="true" id="height_Threshold">{{height_Threshold}}</div>
                             </div>
@@ -49,7 +49,7 @@
                         <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div> -->
                         <div class="algorithm_content">
                             <div class="algorithm_content_sliderItem">
-                                <div class="algorithm_content_demonstration">Fitting Strength:</div>
+                                <div class="algorithm_content_demonstration">polynomial degree:</div>
                                 <el-slider v-model="fitting_strength" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="20" :min="2" ></el-slider>
                             <div class="sliderValue" contenteditable="true" id="fitting_strength">{{fitting_strength}}</div>
                             </div>
@@ -68,7 +68,7 @@
                             <div class="sliderValue" contenteditable="true" id="radius_count">{{radius_count}}</div> -->
                             </div>
                             <div class="algorithm_content_sliderItem">
-                                <div class="algorithm_content_demonstration">Real Diameter:</div>
+                                <div class="algorithm_content_demonstration">Real caliber:</div>
                                 <el-input v-model="realDiameter" type="number" size="mini" style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
                                 <el-button type="primary" size="mini" @click="getAll">Apply</el-button>
                                 
@@ -81,8 +81,8 @@
                                         <el-empty :image-size="30" description='empty'></el-empty>
                                     </template>
                                     <el-table-column
-                                    prop="Distance"
-                                    label="Distance"
+                                    prop="Length"
+                                    label="Length"
                                     width="80">
                                     </el-table-column>
                                     <el-table-column
@@ -259,7 +259,7 @@ export default {
                     let rate = this.realDiameter / Number(res.data.data.r[0])
                     this.tableData = res.data.data.r.map((v, index)=>({
                         Diameter:Number(v).toFixed(4),
-                        Distance:Number(res.data.data.y[index]).toFixed(4),
+                        Length:Number(res.data.data.y[index]).toFixed(4),
                         RealDiameter: (rate * Number(v)).toFixed(4)
                     }))
 
@@ -273,7 +273,7 @@ export default {
             }
             setTimeout(()=>{
                 this.myChart = this.$echarts.init(document.getElementById('canvasContainer'));
-                let data = this.tableData.map(v=>[Number(v['Distance']),  v['RealDiameter']])
+                let data = this.tableData.map(v=>[Number(v['Length']),  v['RealDiameter']])
                 let option = {
                     title: {
                     text: 'Diameter',
@@ -288,7 +288,7 @@ export default {
                     },
                     xAxis: {
                         type: 'value',
-                        name:'distance',
+                        name:'Length',
                         nameTextStyle:{fontSize:10}
                     },
                     yAxis: {
@@ -524,8 +524,8 @@ export default {
         handleDownload() {
             if(this.tableData.length > 0){
                 import('@/vendor/Export2Excel').then(excel => {
-                    const tHeader = ['Distance', 'RealDiameter', 'Diameter'];
-                    const filterVal = ['Distance', 'RealDiameter', 'Diameter'];
+                    const tHeader = ['Length', 'RealDiameter', 'Diameter'];
+                    const filterVal = ['Length', 'RealDiameter', 'Diameter'];
                     
                     const data = this.formatJson(filterVal)
                     excel.export_json_to_excel({

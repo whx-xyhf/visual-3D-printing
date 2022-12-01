@@ -1,6 +1,6 @@
 <template>
     <el-container>
-        <el-header height="64px" style="box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%), 0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+        <el-header height="64px" style="box-shadow: 0px 2px 4px -1px rgb(0 0 0 20%), 0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
     background-color: #f5f5f5;padding: 0">
             <div class="tool_bar_content">
                 <div style="font-weight:700">
@@ -23,15 +23,15 @@
         <el-container>
             <el-aside width="300px" style="height:calc(100vh - 64px);padding:5px 5px">
 
-                <div class="algorithm" :style="{ 'border': active_view_index == 0 ? '1px solid #5CB6FF' : '1px solid #fff' }" ref="edgeDetectionDiv">
+                <div class="algorithm"
+                    :style="{ 'border': active_view_index == 0 ? '1px solid #5CB6FF' : '1px solid #fff' }"
+                    ref="edgeDetectionDiv">
                     <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Edge Detection &nbsp;</div>
-                    <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getSilhouette"></div> -->
-                    <!-- <div class="algorithm_title">Image Contour Extraction</div> -->
                     <div class="algorithm_content">
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration">lowThreshold:</div>
-                            <el-slider v-model="low_Threshold" :show-tooltip="false" :style="{ width: '40%', float: 'left' }"
-                                :step="1" :max="200" :min="10"></el-slider>
+                            <el-slider v-model="low_Threshold" :show-tooltip="false"
+                                :style="{ width: '40%', float: 'left' }" :step="1" :max="200" :min="10"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="low_Threshold">{{ low_Threshold }}</div>
                         </div>
                         <div class="algorithm_content_sliderItem">
@@ -41,17 +41,13 @@
                             <div class="sliderValue" contenteditable="true" id="height_Threshold">{{ height_Threshold }}
                             </div>
                         </div>
-                        <!-- <div class="algorithm_content_sliderItem">
-                                <div class="algorithm_content_demonstration">Kernel Size:</div>
-                                <el-slider v-model="kernel_size" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="10" :min="2" ></el-slider>
-                                <div class="sliderValue" contenteditable="true" id="kernel_size">{{kernel_size}}</div>
-                            </div> -->
                     </div>
                 </div>
 
-                <div class="algorithm" :style="{ 'border': active_view_index == 1 ? '1px solid #5CB6FF' : '1px solid #fff' }" ref="contourFittingDiv">
+                <div class="algorithm"
+                    :style="{ 'border': active_view_index == 1 ? '1px solid #5CB6FF' : '1px solid #fff' }"
+                    ref="contourFittingDiv">
                     <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Contour Fitting &nbsp;</div>
-                    <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getFinalContour"></div> -->
                     <div class="algorithm_content">
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration">polynomial degree:</div>
@@ -63,25 +59,24 @@
                     </div>
                 </div>
 
-                <div class="algorithm" :style="{ 'border': active_view_index == 2 ? '1px solid #5CB6FF' : '1px solid #fff' }" >
+                <div class="algorithm"
+                    :style="{ 'border': active_view_index == 2 ? '1px solid #5CB6FF' : '1px solid #fff' }">
                     <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Diameter &nbsp;</div>
-                    <!-- <div class=" runIcon el-icon-video-play" title="Run" @click="getRadiusImg"></div> -->
                     <div class="algorithm_content">
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration" ref="diameterCountDiv">Diameter Count:</div>
                             <el-input v-model="radius_count" type="number" size="mini"
                                 style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
-
-                            <!-- <el-slider v-model="radius_count" :show-tooltip="false" :style="{width:'40%',float:'left'}" :step="1" :max="100" :min="2" ></el-slider>
-                            <div class="sliderValue" contenteditable="true" id="radius_count">{{radius_count}}</div> -->
                         </div>
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration" ref="realCaliberDiv">Real caliber:</div>
                             <el-input v-model="realDiameter" type="number" size="mini"
                                 style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
+                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Nozzle Diameter:</div>
+                            <el-input v-model="nozzleDiameter" type="number" size="mini"
+                                style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
                             <el-button type="primary" size="mini" @click="getAll">Apply</el-button>
-
-                            <el-table :data="tableData"  border style="width: 100%;height:calc(65vh - 76px)">
+                            <el-table :data="tableData" border style="width: 100%;height:calc(65vh - 76px)">
                                 <template slot="empty">
                                     <el-empty :image-size="30" description='empty'></el-empty>
                                 </template>
@@ -100,11 +95,12 @@
             <el-main
                 style="height:calc(100vh - 64px); position:relative; width: calc(100% - 300px);padding:0;box-sizing:border-box;background: #ddd;"
                 class="main">
-                <div class="main_image_text triangle" :style="{ 'display': imageURl0.length > 0 ? 'block' : 'none' }"></div>
+                <div class="main_image_text triangle" :style="{ 'display': imageURl0.length > 0 ? 'block' : 'none' }">
+                </div>
 
                 <div class="main_img_box" style="width:100%;height:100%;z-index:1"
-                    :style="{ 'display': imageURl0.length > 0 ? 'block' : 'none' }" ref="imgbox0" @mouseover="isActive(0)"
-                    @mouseout="noActive">
+                    :style="{ 'display': imageURl0.length > 0 ? 'block' : 'none' }" ref="imgbox0"
+                    @mouseover="isActive(0)" @mouseout="noActive">
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                         <i :class="fullScreenFlag ? 'el-icon-remove-outline' : 'el-icon-full-screen'"
@@ -116,8 +112,8 @@
                 </div>
 
                 <div class="main_img_box" style="width:49%;height:50%;z-index:5"
-                    :style="{ 'display': tableData.length > 0 ? 'block' : 'none' }" ref="imgbox4" @mouseover="isActive(4)"
-                    @mouseout="noActive">
+                    :style="{ 'display': tableData.length > 0 ? 'block' : 'none' }" ref="imgbox4"
+                    @mouseover="isActive(4)" @mouseout="noActive">
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px;z-index:10">
                         <i :class="fullScreenFlag ? 'el-icon-remove-outline' : 'el-icon-full-screen'"
@@ -128,8 +124,8 @@
                 </div>
 
                 <div class="main_img_box" style="width:33%;height:50%;z-index:2"
-                    :style="{ 'display': imageURl1.length > 0 ? 'block' : 'none' }" ref="imgbox1" @mouseover="isActive(1)"
-                    @mouseout="noActive">
+                    :style="{ 'display': imageURl1.length > 0 ? 'block' : 'none' }" ref="imgbox1"
+                    @mouseover="isActive(1)" @mouseout="noActive">
                     <img :src="imageURl1" alt="" srcset="" id="img" ref="img1" />
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
@@ -137,12 +133,11 @@
                             @click="fullScreen(1)">
                         </i>
                     </div>
-                    <!-- <div class="main_image_text filename">Contour Extraction</div> -->
                 </div>
 
                 <div class="main_img_box" style="width:33%;height:50%;z-index:3"
-                    :style="{ 'display': imageURl2.length > 0 ? 'block' : 'none' }" ref="imgbox2" @mouseover="isActive(2)"
-                    @mouseout="noActive">
+                    :style="{ 'display': imageURl2.length > 0 ? 'block' : 'none' }" ref="imgbox2"
+                    @mouseover="isActive(2)" @mouseout="noActive">
                     <img :src="imageURl2" alt="" srcset="" id="img" ref="img2" />
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
@@ -150,12 +145,11 @@
                             @click="fullScreen(2)">
                         </i>
                     </div>
-                    <!-- <div class="main_image_text filename">Image Contour Fitting</div> -->
                 </div>
 
                 <div class="main_img_box" style="width:33%;height:50%;z-index:4"
-                    :style="{ 'display': imageURl3.length > 0 ? 'block' : 'none' }" ref="imgbox3" @mouseover="isActive(3)"
-                    @mouseout="noActive">
+                    :style="{ 'display': imageURl3.length > 0 ? 'block' : 'none' }" ref="imgbox3"
+                    @mouseover="isActive(3)" @mouseout="noActive">
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                         <i :class="fullScreenFlag ? 'el-icon-remove-outline' : 'el-icon-full-screen'"
@@ -171,7 +165,6 @@
 </template>
 
 <script>
-// linear-gradient(rgb(51, 51, 51), rgb(153, 153, 153))
 export default {
     name: 'Layout',
     data() {
@@ -198,6 +191,7 @@ export default {
             fullScreenFlag: true,
             tableData: [],
             realDiameter: 1,
+            nozzleDiameter: 1,
             myChart: null,
         }
     },
@@ -208,23 +202,6 @@ export default {
         uploadFile(e) {
             const fileName = e.target.files[0].name.split('.')[0];
             this.fileName = fileName;
-            // 
-            // this.$store.dispatch('updateFileName',fileName);
-            // const file = e.target.files[0];
-            // const formData = new FormData();
-            // formData.append('file', file);
-            // let config = {
-            //     headers: {
-            //         'Content-Type': 'multipart/form-data'
-            //     }
-            // }
-            // this.$axios.post('upload_file', formData, config)
-            // .then(res=>{
-            //     this.$store.dispatch('updateOriginData', JSON.parse(res.data.data));
-            //     this.$store.dispatch('updateSamplingData', []);
-            //     this.$store.dispatch('updateLabels', []);
-            //     this.sampling_rate = 100;
-            // })
 
             if (window.FileReader) {
                 //创建读取文件的对象
@@ -274,10 +251,12 @@ export default {
                         this.imageURl1 = 'data:image/png;base64,' + res.data.data.src1;
                         this.imageURl2 = 'data:image/png;base64,' + res.data.data.src2;
                         this.imageURl3 = 'data:image/png;base64,' + res.data.data.src3;
-                        let rate = this.realDiameter / Number(res.data.data.r[0])
+                        let rate = this.realDiameter != 1 && this.nozzleDiameter != 1 ?
+                            this.realDiameter / Number(res.data.data.r[0]) : this.nozzleDiameter / Number(res.data.data.nozzleDiameter)
+
                         this.tableData = res.data.data.r.map((v, index) => ({
                             Diameter: Number(v).toFixed(4),
-                            Length: Number(res.data.data.y[index]).toFixed(4),
+                            Length: Number(rate * res.data.data.y[index]).toFixed(4),
                             RealDiameter: (rate * Number(v)).toFixed(4)
                         }))
 
@@ -331,7 +310,6 @@ export default {
             }, 500)
 
         },
-
         getSilhouette() {
             const file = document.getElementById('fileInput').files[0];
             const formData = new FormData();
@@ -550,7 +528,6 @@ export default {
                 import('@/vendor/Export2Excel').then(excel => {
                     const tHeader = ['Length', 'RealDiameter', 'Diameter'];
                     const filterVal = ['Length', 'RealDiameter', 'Diameter'];
-
                     const data = this.formatJson(filterVal)
                     excel.export_json_to_excel({
                         header: tHeader,

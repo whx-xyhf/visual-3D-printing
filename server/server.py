@@ -19,6 +19,12 @@ def upload_file():
     res = make_response(jsonify({'code': 200, 'data': file.read().decode()}))
     return res
 
+# @app.route('/uploadVedioFile', methods=['POST'])
+# def uploadVedioFile():
+#     file = request.files.get('file')
+#     res = make_response(jsonify({'code': 200, 'data': file.read().decode()}))
+#     return res
+
 
 @app.route("/getSilhouette", methods=['POST'])
 def getImageSilhouette():
@@ -86,7 +92,7 @@ def runAllProcess():
     kernel_size = int(request.form.get('kernel_size'))
     fitting_strength = int(request.form.get('fitting_strength'))
     count = int(request.form.get('count'))
-    src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, width, height, rList, yList \
+    src1, src2, src3, fy1, fy2, fy3, topLimit, leftContourLimit, rightContourLimit, width, height, rList, yList, nozzleDiameter \
         = edgeGetServer.runAll(file.read(), low_Threshold, height_Threshold, fitting_strength, count, kernel_size)
     content = {
         "src1": src1,
@@ -100,6 +106,7 @@ def runAllProcess():
         "rightLimit": int(rightContourLimit),
         "width": int(width),
         "height": int(height),
+        "nozzleDiameter": int(nozzleDiameter),
         'r': rList,
         'y': yList,
         "message": "ok",
@@ -108,6 +115,6 @@ def runAllProcess():
     res = make_response(jsonify({'code': 200, 'data': content}))
     return res
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
 
+if __name__ == '__main__':
+    app.run(debug=True, host="0.0.0.0", port=5000)

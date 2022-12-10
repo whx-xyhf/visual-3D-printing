@@ -14,6 +14,32 @@ from scipy.integrate import quad
 matplotlib.use('Agg')
 
 
+def factorDiff(Factor):
+    """
+    因数导数计算
+    """
+    returnArray = []
+    length = len(Factor)-1
+    for i in range(length):
+        returnArray.append(Factor[i]*(length-i))
+    returnArray = np.array(returnArray)
+    return returnArray
+
+
+def factorToPoly(Factor):
+    '''
+    因数转为表达式字符串
+    输入：Factor：函数的因数
+    输出：函数表达式字符串
+    '''
+    string = ''
+    for i in range(len(Factor)):
+        if (str(Factor[i]))[0] != '-' and i != 0:
+            string += '+'
+        string += str(Factor[i])+'*y**'+str(len(Factor)-i-1)
+    return string
+
+
 def sectionContourDraw(x, y, fitting_strength):
     if x == [] or y == []:
         return ''
@@ -26,12 +52,6 @@ def drawFunction(Factor, y):
     F = np.poly1d(Factor)
     fX = F(y)
     pylab.plot(fX, y,  'black', label='')
-
-
-# def pointTransform(image_width, image_height, real_width, real_height, x, y):
-#     real_x = real_width / image_width * x
-#     real_y = real_height / image_height * y
-#     return [real_x, real_y]
 
 
 def relativeSlope(inputList):
@@ -47,38 +67,29 @@ def relativeSlope(inputList):
     return np.array(relativeSlopeList)
 
 
-def getTopLimit(imgMat, threshold):
+def getTopLimit(leftContour, rightContour, compareNum):
     '''
     上边界判定
     输入图像矩阵
     输出上边界y值
     '''
-    if threshold < 200:
-        xy = list(np.where(imgMat < 128))
-    else:
-        xy = list(np.where(imgMat == 255))
-    xy = splitArray(xy[0], xy[1])
-    # leftContour = []
-    # rightContour = []
     pixelStatistics = []
 
-    for i in range(len(xy[1])):
-        # leftContour.append(xy[0][i][0])
-        # rightContour.append(xy[0][i][-1])
-        pixelStatistics.append(xy[0][i][-1]-xy[0][i][0])
+    for i in range(len(rightContour[1])):
+        pixelStatistics.append(leftContour[0][i]-rightContour[0][i])
 
     der1Contour = relativeSlope(pixelStatistics)
-    # der1Contour = np.diff(pixelStatistics)
 
     topLimit = 0
-    for i in np.array(signal.argrelextrema(der1Contour, np.greater, order=10)[0])[:4]:
+    for i in np.array(signal.argrelextrema(der1Contour, np.greater, order=10)[0])[:compareNum]:
+        print(der1Contour[i], i)
         if der1Contour[i] > der1Contour[topLimit]:
             topLimit = i
     # print(np.array(signal.argrelextrema(
     #     der1Contour, np.greater, order=5)[0])[:3])
-    print(der1Contour[:100], topLimit)
-
-    return topLimit
+    # print(der1Contour[:100], topLimit)
+    print(topLimit)
+    return topLimit+1
 
 
 def getFinalContour(image_buffer,  fitting_strength, topLimit):
@@ -95,6 +106,19 @@ def getFinalContour(image_buffer,  fitting_strength, topLimit):
             return nums[-1]
         else:
             return nums[-rank]
+
+    def slope(string):
+        string = string[1:-1]
+        strArray = string.split(' ')
+        numA = []
+        for i in range(len(strArray)):
+            if strArray[i] in ['']:
+                continue
+            if strArray[i][-2:] in ['\n']:
+                strArray[i] = strArray[i][:-3]
+            numA.append(float(strArray[i]))
+        arry = np.array(numA)
+        return
 
     img_org = cv.imdecode(np.frombuffer(
         image_buffer, np.uint8), cv.IMREAD_GRAYSCALE)
@@ -146,10 +170,30 @@ def getFinalContour(image_buffer,  fitting_strength, topLimit):
         pixelStatistics.append(xy[0][i][-1]-xy[0][i][0])
 
     # # # 上界适应性调整-1
-    topLimit = getTopLimit(img, 255)
-    # fittingAssessL = 0
-    # fittingAssessR = 0
-    # fittingAssessList = []
+    topLimit = getTopLimit(leftContour, rightContour,4)
+    fittingAssessL = 0
+    fittingAssessR = 0
+    fittingAssessList = []
+    for i in range(int(img.shape[0]/80)):
+        y1 = leftContour[1][topLimit+i:]
+        x1 = leftContour[0][topLimit+i:]
+        Factor = np.polyfit(y1, x1, 12)
+        F = np.poly1d(Factor)
+        fX1 = F(y1)
+
+        y2 = rightContour[1][topLimit+i:]
+        x2 = rightContour[0][topLimit+i:]
+        Factor = np.polyfit(y2, x2, 12)
+        F = np.poly1d(Factor)
+        fX2 = F(y2)
+        fittingAssessList.append(
+            fittingAssessL/fittingAssessment(fX1, x1)+fittingAssessR/fittingAssessment(fX2, x2))
+        fittingAssessL = fittingAssessment(fX1, x1)
+        fittingAssessR = fittingAssessment(fX2, x2)
+    topLimit += fittingAssessList.index(max(fittingAssessList))
+
+    # # # 上界适应性调整-2
+    #    左斜率<-1 右>1
     # for i in range(int(img.shape[0]/80)):
     #     y1 = leftContour[1][topLimit+i:]
     #     x1 = leftContour[0][topLimit+i:]
@@ -162,11 +206,7 @@ def getFinalContour(image_buffer,  fitting_strength, topLimit):
     #     Factor = np.polyfit(y2, x2, 12)
     #     F = np.poly1d(Factor)
     #     fX2 = F(y2)
-    #     fittingAssessList.append(
-    #         fittingAssessL/fittingAssessment(fX1, x1)+fittingAssessR/fittingAssessment(fX2, x2))
-    #     fittingAssessL = fittingAssessment(fX1, x1)
-    #     fittingAssessR = fittingAssessment(fX2, x2)
-    # topLimit += fittingAssessList.index(max(fittingAssessList))
+    # if
 
     nozzleDiameter = max(pixelStatistics[:topLimit])
     # leftContourLimit Get
@@ -174,6 +214,7 @@ def getFinalContour(image_buffer,  fitting_strength, topLimit):
     bottom = leftContourLimit+30
 
     der1Contour = np.diff(pixelStatistics)
+
     # # # 右轮廓边界为首个极大值
     for i in signal.argrelextrema(der1Contour, np.greater)[0]:
         if der1Contour[i] > 20:
@@ -182,14 +223,6 @@ def getFinalContour(image_buffer,  fitting_strength, topLimit):
     if "rightContourLimit" not in locals():
         rightContourLimit = rightContour[1][-1]
 
-    # for i in range(3, 1, -1):
-    #     rightContourLimit = list(der1Contour).index(
-    #         int(rankMax(i, list(der1Contour))))
-    #     if rightContourLimit < leftContourLimit and rightContourLimit > topLimit:
-    #         print("rightLimit", der1Contour[rightContourLimit])
-    #         break
-
-    # print("first", len(rightContour[0]), rightContour[0], rightContourLimit)
     rightContour[0] = rightContour[0][topLimit:rightContourLimit]
     rightContour[1] = rightContour[1][topLimit:rightContourLimit]
     leftContour[0] = leftContour[0][topLimit:]
@@ -213,10 +246,14 @@ def getFinalContour(image_buffer,  fitting_strength, topLimit):
             midLine[0] = midLine[0][i:]
             midLine[1] = midLine[1][i:]
             break
-    # print(midLine[0],midLine[1])
+
     midLineLimit = midLine[1][-1]
     left = min(leftContour[0]) - 30
+    if left < 0:
+        left = 0
     right = max(rightContour[0]) + 30
+    if right > len(img[0]):
+        right = len(img[0])
 
     pylab.figure(figsize=(16, 9))
     fy1 = sectionContourDraw(leftContour[0], leftContour[1], fitting_strength)
@@ -298,22 +335,6 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
             Counter(leftContour[0][:leftFirstMutation]).keys())[0]
         return leftContourLimit
 
-    def connectedComponentsWithStats(src, threshold=3):
-        num_labels, labels, stats, centroids = cv.connectedComponentsWithStats(
-            src, connectivity=8, ltype=None)
-        img = np.zeros((src.shape[0], src.shape[1]), np.uint8)  # 创建个全0的黑背景
-        for i in range(1, num_labels):
-            mask = labels == i  # 这一步是通过labels确定区域位置，让labels信息赋给mask数组，再用mask数组做img数组的索引
-            if stats[i][4] > threshold:
-                img[mask] = 255
-                # img[mask] = 255
-                # img[mask] = 255           #面积大于300的区域涂白留下，小于300的涂0抹去
-            else:
-                img[mask] = 0
-                # img[mask] = 0
-                # img[mask] = 0
-        return img
-
     def getBottomLineByContour(img, continueThreshold=3, lowThreshold=-2):
         leftContour = []
         for i in range(img.shape[0]):
@@ -323,14 +344,21 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
                 leftContour.append(-9999)
         return list(leftContour).index(max(leftContour))
 
-    def imgPatch(img, leftC, rightC, topLimit):
+    def imgPatch(img, leftC, rightC, compareNum):
         """
         上部缺口修补
         """
         offset = int(len(img[1])/80)
-        begin = topLimit-offset
-        if begin < 0:
+
+        topLimit = getTopLimit(leftContour, rightContour, compareNum)
+        while topLimit+2*offset > len(leftC[1]):
+            compareNum -= 1
+            topLimit = getTopLimit(leftContour, rightContour, compareNum)
+        if topLimit-offset < 0:
             begin = offset
+        else:
+            begin = topLimit-offset
+
         for row in range(begin, topLimit+offset):
             if leftC[0][row] > max(min(leftC[0][row-offset:row]), min(leftC[0][row+1:row+offset])):
                 img[0][row] = np.append(img[0][row], max(
@@ -340,8 +368,9 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
                 img[0][row] = np.append(img[0][row], min(
                     max(rightC[0][row-offset:row]), max(rightC[0][row+1:row+offset])))
                 img[1][row] = np.append(img[1][row], row)
-
+        return topLimit
     # 限制对比度自适应直方图均衡化CLAHE
+
     def clahe(image):
         b, g, r = cv.split(image)
         clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
@@ -382,7 +411,7 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
     # columnResult = np.where(columnPixel == 0)
     # print(lineResult, columnResult)
 
-    showImg = cv.resize(imageCountour, (1280, 720))
+    # showImg = cv.resize(imageCountour, (1280, 720))
     # showImg = connectedComponentsWithStats(showImg, 5)
     # cv.imshow("contour", showImg)
     # cv.waitKey(0)
@@ -397,12 +426,20 @@ def getSilhouette(image_buffer, low_Threshold=50, height_Threshold=150, kernel_s
         leftContour[1].append(xy[1][i][0])
         rightContour[0].append(xy[0][i][-1])
         rightContour[1].append(xy[1][i][-1])
-    topLimit = getTopLimit(img, 128)
-    # print("toplimit:",topLimit)
-    imgPatch(xy, leftContour, rightContour, topLimit)
+    compareNum = 4
+    topLimit = imgPatch(xy, leftContour, rightContour, compareNum)
 
     # 由于阈值原因，可能不存在下边界，此时leftContourLImit为0
-    leftContourLimit = getBottomLineByContour(img)
+    leftContourLimit1 = getBottomLineByContour(img)
+    leftContourLimit2 = getBottomLineByColumn(img)
+    if leftContourLimit1 > topLimit and leftContourLimit2 > topLimit:
+        leftContourLimit = min(leftContourLimit1, leftContourLimit2)
+    elif leftContourLimit1 > topLimit and leftContourLimit2 < topLimit:
+        leftContourLimit = leftContourLimit1
+    else:
+        leftContourLimit = leftContourLimit2
+
+    # print(leftContourLimit, leftContour[1][leftContourLimit-1])
     if leftContourLimit != 0:
         fittingAssess = 0
         fittingAssessList = []
@@ -476,91 +513,63 @@ def strToNdarray(string):
     return arry
 
 
-def getIntersection(factor1, factor2, bottomLim, topLim):
-    '''
-    交点计算
-    输入：\n
-          factor1：函数1的因数\n
-          factor2：函数2的因数\n
-          bottomLim：下边界限制\n
-          topLim：上边界限制\n
-    输出：返回两个函数的交点坐标
-    '''
-    offset = 1
-    if bottomLim > topLim:
-        bottomLim, topLim = topLim, bottomLim
-    subDis = len(factor1)-len(factor2)
-    for i in range(len(factor2)):
-        factor1[i+subDis] -= factor2[i]
-    p1 = np.poly1d(factor1)
-    p2 = np.poly1d(factor2)
-    y = 0
-
-    for i in range(len(p1.roots)):
-        if np.imag(p1.roots[i]) == 0 and np.real(p1.roots[i]) < topLim and np.real(p1.roots[i]) > bottomLim:
-            y = np.real(p1.roots[i])
-    x = p2(y)
-    return [x, y]
-
-
-def arcLengthCompute(factor, lowerBound, heightBound):
-    """
-    弧长计算
-    输入：
-        factor：函数因数 
-        lowerBound：积分下界
-        heightBound：积分上界
-    输出：
-        弧长
-        误差范围
-    """
-
-    def factorDiff(Factor):
-        """
-        因数导数计算
-        """
-        returnArray = []
-        length = len(Factor)-1
-        for i in range(length):
-            returnArray.append(Factor[i]*(length-i))
-        returnArray = np.array(returnArray)
-        return returnArray
-
-    def factorToPoly(Factor):
-        '''
-        因数转为表达式字符串
-        输入：Factor：函数的因数
-        输出：函数表达式字符串
-        '''
-        string = ''
-        for i in range(len(Factor)):
-            if (str(Factor[i]))[0] != '-' and i != 0:
-                string += '+'
-            string += str(Factor[i])+'*y**'+str(len(Factor)-i-1)
-        return string
-
-    der1f1 = factorDiff(factor)
-    f = factorToPoly(der1f1)
-    result = quad(lambda y: (1+eval(f)**2) ** 0.5,
-                  lowerBound, heightBound)
-    return result
-
-
-def numList(p1, p2):
-    if p1 < p2:
-        return (range(int(p1), int(p2)))
-    else:
-        return (range(int(p2), int(p1)))
-
-
-def drawNormalLine(yFactor, x):
-    xFactor = np.array([1/yFactor[0], -yFactor[1]/yFactor[0]])
-    F = np.poly1d(xFactor)
-    fY = F(x)
-    pylab.plot(x, fY,  'red', label='')
-
-
 def drawRadiusPic(count, image_ori_width, image_ori_height, fy1, fy2, midLineFactor, topLimit, leftContourLimit, rightContourLimit, midLineLimit, bottom, left, right):
+
+    def getIntersection(factor1, factor2, bottomLim, topLim):
+        '''
+        交点计算
+        输入：\n
+            factor1：函数1的因数\n
+            factor2：函数2的因数\n
+            bottomLim：下边界限制\n
+            topLim：上边界限制\n
+        输出：返回两个函数的交点坐标
+        '''
+        offset = 1
+        if bottomLim > topLim:
+            bottomLim, topLim = topLim, bottomLim
+        subDis = len(factor1)-len(factor2)
+        for i in range(len(factor2)):
+            factor1[i+subDis] -= factor2[i]
+        p1 = np.poly1d(factor1)
+        p2 = np.poly1d(factor2)
+        y = 0
+
+        for i in range(len(p1.roots)):
+            if np.imag(p1.roots[i]) == 0 and np.real(p1.roots[i]) < topLim and np.real(p1.roots[i]) > bottomLim:
+                y = np.real(p1.roots[i])
+        x = p2(y)
+        return [x, y]
+
+    def drawNormalLine(yFactor, x):
+        xFactor = np.array([1/yFactor[0], -yFactor[1]/yFactor[0]])
+        F = np.poly1d(xFactor)
+        fY = F(x)
+        pylab.plot(x, fY,  'red', label='')
+
+    def numList(p1, p2):
+        if p1 < p2:
+            return (range(int(p1), int(p2)))
+        else:
+            return (range(int(p2), int(p1)))
+
+    def arcLengthCompute(factor, lowerBound, heightBound):
+        """
+        弧长计算
+        输入：
+            factor：函数因数 
+            lowerBound：积分下界
+            heightBound：积分上界
+        输出：
+            弧长
+            误差范围
+        """
+
+        der1f1 = factorDiff(factor)
+        f = factorToPoly(der1f1)
+        result = quad(lambda y: (1+eval(f)**2) ** 0.5,
+                      lowerBound, heightBound)
+        return result
 
     leftLineF = strToNdarray(fy1)
     rightLineF = strToNdarray(fy2)

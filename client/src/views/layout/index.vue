@@ -107,8 +107,7 @@
                             @click="fullScreen(0)">
                         </i>
                     </div>
-                    <img :src="imageURl0" alt="" srcset="" id="img" ref="img0" style="object-fit:fill" />
-                    <!-- <div class="main_image_text filename">Origin Picture</div> -->
+                    <img :src="imageURl0" alt="" srcset="" id="img" ref="img0" style="" />
                 </div>
 
                 <div class="main_img_box" style="width:49%;height:50%;z-index:5"
@@ -251,7 +250,8 @@ export default {
                         this.imageURl1 = 'data:image/png;base64,' + res.data.data.src1;
                         this.imageURl2 = 'data:image/png;base64,' + res.data.data.src2;
                         this.imageURl3 = 'data:image/png;base64,' + res.data.data.src3;
-                        let rate = this.realDiameter != 1 && this.nozzleDiameter != 1 ?
+                        let rate = 1
+                        rate = this.realDiameter != 1 && this.nozzleDiameter == 1 ?
                             this.realDiameter / Number(res.data.data.r[0]) : this.nozzleDiameter / Number(res.data.data.nozzleDiameter)
 
                         this.tableData = res.data.data.r.map((v, index) => ({
@@ -604,7 +604,7 @@ export default {
     width: 100%;
     height: 100%;
     user-select: none;
-    background: #fff;
+    /* background: #fff; */
 }
 
 .main_image_text {

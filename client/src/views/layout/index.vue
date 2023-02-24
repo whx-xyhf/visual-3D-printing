@@ -1,7 +1,7 @@
 <template>
     <el-container>
-        <el-header height="64px" style="box-shadow: 0px 2px 4px -1px rgb(0 0 0 20%), 0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
-    background-color: #f5f5f5;padding: 0">
+        <el-header height="64px" style="box-shadow: 0px 2px 4px -1px,rgb(0 0 0 20%), 0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+    background-color: #f5f,padding: 0">
             <div class="tool_bar_content">
                 <div style="font-weight:700">
                     Visual analysis of 3D printing results
@@ -31,13 +31,13 @@
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration">lowThreshold:</div>
                             <el-slider v-model="low_Threshold" :show-tooltip="false"
-                                :style="{ width: '40%', float: 'left' }" :step="1" :max="200" :min="10"></el-slider>
+                                :style="{ width: '40%', float: 'left' }" :step="1" :max="100" :min="0"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="low_Threshold">{{ low_Threshold }}</div>
                         </div>
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration">highThreshold :</div>
                             <el-slider v-model="height_Threshold" :show-tooltip="false"
-                                :style="{ width: '40%', float: 'left' }" :step="1" :max="1000" :min="200"></el-slider>
+                                :style="{ width: '40%', float: 'left' }" :step="1" :max="255" :min="0"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="height_Threshold">{{ height_Threshold }}
                             </div>
                         </div>
@@ -52,7 +52,7 @@
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration">polynomial degree:</div>
                             <el-slider v-model="fitting_strength" :show-tooltip="false"
-                                :style="{ width: '40%', float: 'left' }" :step="1" :max="20" :min="2"></el-slider>
+                                :style="{ width: '40%', float: 'left' }" :step="1" :max="12" :min="8"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="fitting_strength">{{ fitting_strength }}
                             </div>
                         </div>
@@ -69,14 +69,21 @@
                                 style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
                         </div>
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Real caliber:</div>
-                            <el-input v-model="realDiameter" type="number" size="mini"
+                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Scale bar:</div>
+                            
+                            <el-select v-model="value" placeholder="please select"
+                                style="width: 50%;;font-size: 12px;padding: 0%;" size="mini">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
+                            <div class="algorithm_content_demonstration" ref="diameterCountDiv"> <br></div>
+                            <el-input v-model="inputData" type="number" size="mini"
                                 style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
-                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Nozzle Diameter:</div>
-                            <el-input v-model="nozzleDiameter" type="number" size="mini"
-                                style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
+
                             <el-button type="primary" size="mini" @click="getAll">Apply</el-button>
-                            <el-table :data="tableData" border style="width: 100%;height:calc(65vh - 76px)">
+                            <el-table :data="tableData" border style="width: 100%;height:40%">
+                                <!-- calc(65vh - 76px) -->
                                 <template slot="empty">
                                     <el-empty :image-size="30" description='empty'></el-empty>
                                 </template>
@@ -119,7 +126,7 @@
                             @click="fullScreen(4)">
                         </i>
                     </div>
-                    <div id="canvasContainer" style='width:100%;height:100%;background:#fff'></div>
+                    <div id="canvasContainer" style="width:100%;height:100%;background:#fff"></div>
                 </div>
 
                 <div class="main_img_box" style="width:33%;height:50%;z-index:2"
@@ -189,9 +196,16 @@ export default {
             active_view_index: -1,
             fullScreenFlag: true,
             tableData: [],
-            realDiameter: 1,
-            nozzleDiameter: 1,
+            inputData: 1,
             myChart: null,
+            options: [{
+                value: 'realDiameter',
+                label: 'real Diameter'
+            }, {
+                value: 'nozzleDiameter',
+                label: 'nozzle Diameter'
+            }],
+            value: 'nozzleDiameter'
         }
     },
     methods: {
@@ -251,9 +265,11 @@ export default {
                         this.imageURl2 = 'data:image/png;base64,' + res.data.data.src2;
                         this.imageURl3 = 'data:image/png;base64,' + res.data.data.src3;
                         let rate = 1
-                        rate = this.realDiameter != 1 && this.nozzleDiameter == 1 ?
-                            this.realDiameter / Number(res.data.data.r[0]) : this.nozzleDiameter / Number(res.data.data.nozzleDiameter)
-
+                        if (this.value == "realDiameter") {
+                            rate = this.inputData / Number(res.data.data.r[0])
+                        } else {
+                            rate = this.inputData / Number(res.data.data.nozzleDiameter)
+                        }
                         this.tableData = res.data.data.r.map((v, index) => ({
                             Diameter: Number(v).toFixed(4),
                             Length: Number(rate * res.data.data.y[index]).toFixed(4),
@@ -597,6 +613,13 @@ export default {
     left: 0;
     /* float:left; */
 
+}
+
+.el-input__inner {
+    color: #eee;
+    border-color: #00fff6;
+    background-color: rgba(1, 28, 82, 0.8);
+    padding-left: 0%;
 }
 
 .main_img_box img {

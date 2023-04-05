@@ -1,16 +1,16 @@
-##Visual analysis of 3D printing results
+## Visual analysis of 3D printing results
 
 Available Scripts
 
 In the project directory, you can run:
 
-####cd server
+#### cd server
 
-####python server.py
+#### python server.py
 
-####cd client
+#### cd client
 
-####npm run serve
+#### npm run serve
 
 Runs the app in the development mode.
 

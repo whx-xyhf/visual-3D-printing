@@ -15,6 +15,12 @@
                         style="height:56px;background:#f5f5f5;color:#000;border:none;transition: opacity .2s cubic-bezier(0.4, 0, 0.6, 1);"
                         @click="handleDownload">SAVE</el-button>
                     <input type="file" name="" id="fileInput" @change="uploadFile($event)" style="display:none">
+                    <el-button icon="el-icon-info"
+                        style="height:56px;background:#f5f5f5;color:#000;border:none;transition: opacity .2s cubic-bezier(0.4, 0, 0.6, 1);margin-left: 10px;"
+                        @click="usage">HELP</el-button>
+
+
+
                 </div>
 
 
@@ -64,13 +70,15 @@
                     <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Jet Diameter along the Spinline &nbsp;</div>
                     <div class="algorithm_content">
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration" ref="diameterCountDiv">Segmental Quantity of Jet:</div>
+                            <div class="algorithm_content_demonstration" ref="diameterCountDiv">Segmental Quantity of Jet:
+                            </div>
                             <el-input v-model="radius_count" type="number" size="mini"
                                 style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
                         </div>
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Outer Diameter of Nozzle(μm):</div>
-                            
+                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Outer Diameter of Nozzle(μm):
+                            </div>
+
                             <!-- <el-select v-model="value" placeholder="please select"
                                 style="width: 50%;;font-size: 12px;padding: 0%;" size="mini">
                                 <el-option v-for="item in options" :key="item.value" :label="item.label"
@@ -106,8 +114,8 @@
                 </div>
 
                 <div class="main_img_box" style="width:100%;height:100%;z-index:1"
-                    :style="{ 'display': imageURl0.length > 0 ? 'block' : 'none' }" ref="imgbox0"
-                    @mouseover="isActive(0)" @mouseout="noActive">
+                    :style="{ 'display': imageURl0.length > 0 ? 'block' : 'none' }" ref="imgbox0" @mouseover="isActive(0)"
+                    @mouseout="noActive">
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                         <i :class="fullScreenFlag ? 'el-icon-remove-outline' : 'el-icon-full-screen'"
@@ -118,8 +126,8 @@
                 </div>
 
                 <div class="main_img_box" style="width:49%;height:50%;z-index:5"
-                    :style="{ 'display': tableData.length > 0 ? 'block' : 'none' }" ref="imgbox4"
-                    @mouseover="isActive(4)" @mouseout="noActive">
+                    :style="{ 'display': tableData.length > 0 ? 'block' : 'none' }" ref="imgbox4" @mouseover="isActive(4)"
+                    @mouseout="noActive">
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px;z-index:10">
                         <i :class="fullScreenFlag ? 'el-icon-remove-outline' : 'el-icon-full-screen'"
@@ -130,8 +138,8 @@
                 </div>
 
                 <div class="main_img_box" style="width:33%;height:50%;z-index:2"
-                    :style="{ 'display': imageURl1.length > 0 ? 'block' : 'none' }" ref="imgbox1"
-                    @mouseover="isActive(1)" @mouseout="noActive">
+                    :style="{ 'display': imageURl1.length > 0 ? 'block' : 'none' }" ref="imgbox1" @mouseover="isActive(1)"
+                    @mouseout="noActive">
                     <img :src="imageURl1" alt="" srcset="" id="img" ref="img1" />
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
@@ -142,8 +150,8 @@
                 </div>
 
                 <div class="main_img_box" style="width:33%;height:50%;z-index:3"
-                    :style="{ 'display': imageURl2.length > 0 ? 'block' : 'none' }" ref="imgbox2"
-                    @mouseover="isActive(2)" @mouseout="noActive">
+                    :style="{ 'display': imageURl2.length > 0 ? 'block' : 'none' }" ref="imgbox2" @mouseover="isActive(2)"
+                    @mouseout="noActive">
                     <img :src="imageURl2" alt="" srcset="" id="img" ref="img2" />
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
@@ -154,8 +162,8 @@
                 </div>
 
                 <div class="main_img_box" style="width:33%;height:50%;z-index:4"
-                    :style="{ 'display': imageURl3.length > 0 ? 'block' : 'none' }" ref="imgbox3"
-                    @mouseover="isActive(3)" @mouseout="noActive">
+                    :style="{ 'display': imageURl3.length > 0 ? 'block' : 'none' }" ref="imgbox3" @mouseover="isActive(3)"
+                    @mouseout="noActive">
                     <div
                         style="width:30px; height:30px;position:absolute;top:25px; right:25px;background:#202020; border-radius:10px">
                         <i :class="fullScreenFlag ? 'el-icon-remove-outline' : 'el-icon-full-screen'"
@@ -312,93 +320,94 @@ export default {
             }, 500)
 
         },
-        getSilhouette() {
-            const file = document.getElementById('fileInput').files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('low_Threshold', this.low_Threshold);
-            formData.append('height_Threshold', this.height_Threshold);
-            formData.append('kernel_size', this.kernel_size)
-            let config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }
-            this.$axios.post('getSilhouette', formData, config)
-                .then(res => {
-                    if (res.data.code == 200) {
-                        if (this.fullScreenFlag) {
-                            this.fullScreenFlag = false;
-                            this.fullScreen(1);
-                        }
-                        this.imageURl1 = 'data:image/png;base64,' + res.data.data;
-                    }
-                })
-        },
-        getFinalContour() {
-            const file = this.base64toFile(this.imageURl1, this.fileName);
-            const formData = new FormData();
-            const height = this.$refs.img1.clientHeight;
-            const points = this.points1.map(v => [v[0], height - v[1]])
-            formData.append('file', file);
-            formData.append('points', points);
-            formData.append('width', this.$refs.img1.clientWidth);
-            formData.append('height', this.$refs.img1.clientHeight);
-            formData.append('fitting_strength', this.fitting_strength);
-            let config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }
-            this.$axios.post('getFixContour', formData, config)
-                .then(res => {
-                    if (res.data.code == 200) {
-                        if (this.fullScreenFlag) {
-                            this.fullScreenFlag = false;
-                            this.fullScreen(2);
-                        }
-                        this.imageURl2 = 'data:image/png;base64,' + res.data.data.src;
-                        // this.area_select = false;
-                        this.fy1 = res.data.data.fy1;
-                        this.fy2 = res.data.data.fy2;
-                        this.fy3 = res.data.data.fy3;
-                        this.limit = res.data.data.limit;
-                    }
-                })
-        },
-        getRadiusImg() {
-            const height = this.active_view_index == 3 ? this.$refs.img3.clientHeight : this.$refs.img2.clientHeight;
-            const points = this.points2.map(v => [v[0], height - v[1]])
-            const parameter = {
-                fy1: this.fy1,
-                fy2: this.fy2,
-                fy3: this.fy3,
-                limit: this.limit,
-                points: points,
-                img_ori_width: this.active_view_index == 3 ? this.$refs.img3.naturalWidth : this.$refs.img2.naturalWidth,
-                img_ori_height: this.active_view_index == 3 ? this.$refs.img3.naturalHeight : this.$refs.img2.naturalHeight,
-                show_width: this.active_view_index == 3 ? this.$refs.img3.clientWidth : this.$refs.img2.clientWidth,
-                show_height: this.active_view_index == 3 ? this.$refs.img3.clientHeight : this.$refs.img2.clientHeight,
-                count: this.radius_count
-            }
-            this.$axios.post('drawRadiusPic', parameter)
-                .then(res => {
-                    if (res.data.code == 200) {
-                        if (this.fullScreenFlag) {
-                            this.fullScreenFlag = false;
-                            this.fullScreen(3);
-                        }
-                        this.imageURl3 = 'data:image/png;base64,' + res.data.data.src;
-                        console.log(res.data.data.r)
-                        this.tableData = res.data.data.r.map((v, index) => ({
-                            lr: Number(v[0]).toFixed(2),
-                            rr: Number(v[1]).toFixed(2),
-                            r: (Number(v[0]) + Number(v[1])).toFixed(2),
-                            y: Number(res.data.data.y[index]).toFixed(2)
-                        }))
-                    }
-                })
-        },
+        // getSilhouette() {
+        //     const file = document.getElementById('fileInput').files[0];
+        //     const formData = new FormData();
+        //     formData.append('file', file);
+        //     formData.append('low_Threshold', this.low_Threshold);
+        //     formData.append('height_Threshold', this.height_Threshold);
+        //     formData.append('kernel_size', this.kernel_size)
+        //     let config = {
+        //         headers: {
+        //             'Content-Type': 'multipart/form-data'
+        //         }
+        //     }
+        //     this.$axios.post('getSilhouette', formData, config)
+        //         .then(res => {
+        //             if (res.data.code == 200) {
+        //                 if (this.fullScreenFlag) {
+        //                     this.fullScreenFlag = false;
+        //                     this.fullScreen(1);
+        //                 }
+        //                 this.imageURl1 = 'data:image/png;base64,' + res.data.data;
+        //             }
+        //         })
+        // },
+        // getFinalContour() {
+        //     const file = this.base64toFile(this.imageURl1, this.fileName);
+        //     const formData = new FormData();
+        //     const height = this.$refs.img1.clientHeight;
+        //     const points = this.points1.map(v => [v[0], height - v[1]])
+        //     formData.append('file', file);
+        //     formData.append('points', points);
+        //     formData.append('width', this.$refs.img1.clientWidth);
+        //     formData.append('height', this.$refs.img1.clientHeight);
+        //     formData.append('fitting_strength', this.fitting_strength);
+        //     let config = {
+        //         headers: {
+        //             'Content-Type': 'multipart/form-data'
+        //         }
+        //     }
+        //     this.$axios.post('getFixContour', formData, config)
+        //         .then(res => {
+        //             if (res.data.code == 200) {
+        //                 if (this.fullScreenFlag) {
+        //                     this.fullScreenFlag = false;
+        //                     this.fullScreen(2);
+        //                 }
+        //                 this.imageURl2 = 'data:image/png;base64,' + res.data.data.src;
+        //                 // this.area_select = false;
+        //                 this.fy1 = res.data.data.fy1;
+        //                 this.fy2 = res.data.data.fy2;
+        //                 this.fy3 = res.data.data.fy3;
+        //                 this.limit = res.data.data.limit;
+        //             }
+        //         })
+        // },
+        // getRadiusImg() {
+        //     const height = this.active_view_index == 3 ? this.$refs.img3.clientHeight : this.$refs.img2.clientHeight;
+        //     const points = this.points2.map(v => [v[0], height - v[1]])
+        //     const parameter = {
+        //         fy1: this.fy1,
+        //         fy2: this.fy2,
+        //         fy3: this.fy3,
+        //         limit: this.limit,
+        //         points: points,
+        //         img_ori_width: this.active_view_index == 3 ? this.$refs.img3.naturalWidth : this.$refs.img2.naturalWidth,
+        //         img_ori_height: this.active_view_index == 3 ? this.$refs.img3.naturalHeight : this.$refs.img2.naturalHeight,
+        //         show_width: this.active_view_index == 3 ? this.$refs.img3.clientWidth : this.$refs.img2.clientWidth,
+        //         show_height: this.active_view_index == 3 ? this.$refs.img3.clientHeight : this.$refs.img2.clientHeight,
+        //         count: this.radius_count
+        //     }
+        //     this.$axios.post('drawRadiusPic', parameter)
+        //         .then(res => {
+        //             if (res.data.code == 200) {
+        //                 if (this.fullScreenFlag) {
+        //                     this.fullScreenFlag = false;
+        //                     this.fullScreen(3);
+        //                 }
+        //                 this.imageURl3 = 'data:image/png;base64,' + res.data.data.src;
+        //                 console.log(res.data.data.r)
+        //                 this.tableData = res.data.data.r.map((v, index) => ({
+        //                     lr: Number(v[0]).toFixed(2),
+        //                     rr: Number(v[1]).toFixed(2),
+        //                     r: (Number(v[0]) + Number(v[1])).toFixed(2),
+        //                     y: Number(res.data.data.y[index]).toFixed(2)
+        //                 }))
+        //             }
+        //         })
+        // },
+
         base64toFile(data, fileName) {
             const dataArr = data.split(",");
             const byteString = atob(dataArr[1]);
@@ -547,6 +556,20 @@ export default {
                 return v[j]
             }))
         },
+        usage() {
+            var modal = document.createElement("div");
+            modal.className = "modal";
+            var video = document.createElement("iframe");
+            video.src = "resource/usage.mp4";
+            video.type="video/mp4"
+            modal.appendChild(video);
+            document.body.appendChild(modal);
+
+            modal.innerHTML += '<button class="close">&times;</button>';
+            modal.querySelector(".close").addEventListener("click", function () {
+                modal.parentNode.removeChild(modal);
+            });
+        }
     },
     watch: {
         tableData() {
@@ -721,5 +744,33 @@ export default {
 <style>
 .el-slider__button {
     border-radius: 30% !important;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal iframe {
+    width: 80%;
+    height: 60%;
+}
+
+.modal button.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: transparent;
+    color: white;
+    border: none;
+    font-size: 24px;
 }
 </style>

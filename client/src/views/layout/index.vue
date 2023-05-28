@@ -37,7 +37,7 @@
                         <div class="algorithm_content_sliderItem">
                             <div class="algorithm_content_demonstration">highThreshold :</div>
                             <el-slider v-model="height_Threshold" :show-tooltip="false"
-                                :style="{ width: '40%', float: 'left' }" :step="1" :max="255" :min="0"></el-slider>
+                                :style="{ width: '40%', float: 'left' }" :step="1" :max="255" :min="100"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="height_Threshold">{{ height_Threshold }}
                             </div>
                         </div>

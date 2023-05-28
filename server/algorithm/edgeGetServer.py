@@ -592,8 +592,8 @@ def runAll(sourceImageBuffer, low_Threshold=50, height_Threshold=150, fitting_st
     if towardsFlag:
         skeletonImg = skeletonImg[:, ::-1]
         finalImg = finalImg[:, ::-1]
-    cv.imwrite("skeletonImg.png", skeletonImg)
-    cv.imwrite("imageCountour.png", imageCountour)
-    cv.imwrite("finalImg.png", finalImg)
+    # cv.imwrite("skeletonImg.png", skeletonImg)
+    # cv.imwrite("imageCountour.png", imageCountour)
+    # cv.imwrite("finalImg.png", finalImg)
 
     return imageArrayToStr(imageCountour), imageArrayToStr(skeletonImg), imageArrayToStr(finalImg), dList, arcLength, nozzleDiameter

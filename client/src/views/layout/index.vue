@@ -69,7 +69,7 @@
                                 style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
                         </div>
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Outer diameter of nozzle(μm):</div>
+                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Outer Diameter of Nozzle(μm):</div>
                             
                             <!-- <el-select v-model="value" placeholder="please select"
                                 style="width: 50%;;font-size: 12px;padding: 0%;" size="mini">
@@ -87,9 +87,9 @@
                                 <template slot="empty">
                                     <el-empty :image-size="30" description='empty'></el-empty>
                                 </template>
-                                <el-table-column prop="Length" label="Length" width="130">
+                                <el-table-column prop="Length" label=" Jet Length" width="130">
                                 </el-table-column>
-                                <el-table-column prop="RealDiameter" label="RealDiameter" width="160">
+                                <el-table-column prop="RealDiameter" label="Jet Diameter" width="160">
                                 </el-table-column>
                                 <!-- <el-table-column prop="Diameter" label="Diameter" width="85">
                                 </el-table-column> -->

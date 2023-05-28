@@ -4,7 +4,7 @@
     background-color: #f5f,padding: 0">
             <div class="tool_bar_content">
                 <div style="font-weight:700">
-                    Visual analysis of 3D printing results
+                    Visual analysis of MEW jet
                 </div>
                 <div class="spacer"></div>
                 <div class="tool_bar__items">
@@ -29,13 +29,13 @@
                     <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Edge Detection &nbsp;</div>
                     <div class="algorithm_content">
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration">lowThreshold:</div>
+                            <div class="algorithm_content_demonstration">Low Threshold:</div>
                             <el-slider v-model="low_Threshold" :show-tooltip="false"
                                 :style="{ width: '40%', float: 'left' }" :step="1" :max="100" :min="0"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="low_Threshold">{{ low_Threshold }}</div>
                         </div>
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration">highThreshold :</div>
+                            <div class="algorithm_content_demonstration">High Threshold:</div>
                             <el-slider v-model="height_Threshold" :show-tooltip="false"
                                 :style="{ width: '40%', float: 'left' }" :step="1" :max="255" :min="100"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="height_Threshold">{{ height_Threshold }}
@@ -47,10 +47,10 @@
                 <div class="algorithm"
                     :style="{ 'border': active_view_index == 1 ? '1px solid #5CB6FF' : '1px solid #fff' }"
                     ref="contourFittingDiv">
-                    <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Contour Fitting &nbsp;</div>
+                    <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Countour Curve Fitting &nbsp;</div>
                     <div class="algorithm_content">
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration">polynomial degree:</div>
+                            <div class="algorithm_content_demonstration">Polynominal Degree:</div>
                             <el-slider v-model="fitting_strength" :show-tooltip="false"
                                 :style="{ width: '40%', float: 'left' }" :step="1" :max="12" :min="8"></el-slider>
                             <div class="sliderValue" contenteditable="true" id="fitting_strength">{{ fitting_strength }}
@@ -61,25 +61,25 @@
 
                 <div class="algorithm"
                     :style="{ 'border': active_view_index == 2 ? '1px solid #5CB6FF' : '1px solid #fff' }">
-                    <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Diameter &nbsp;</div>
+                    <div class="algorithm_title el-icon-arrow-down">&nbsp;&nbsp;Jet Diameter along the Spinline &nbsp;</div>
                     <div class="algorithm_content">
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration" ref="diameterCountDiv">Diameter Count:</div>
+                            <div class="algorithm_content_demonstration" ref="diameterCountDiv">Segmental Quantity of Jet:</div>
                             <el-input v-model="radius_count" type="number" size="mini"
                                 style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
                         </div>
                         <div class="algorithm_content_sliderItem">
-                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Scale bar:</div>
+                            <div class="algorithm_content_demonstration" ref="realCaliberDiv">Outer diameter of nozzle(μm):</div>
                             
-                            <el-select v-model="value" placeholder="please select"
+                            <!-- <el-select v-model="value" placeholder="please select"
                                 style="width: 50%;;font-size: 12px;padding: 0%;" size="mini">
                                 <el-option v-for="item in options" :key="item.value" :label="item.label"
                                     :value="item.value">
                                 </el-option>
-                            </el-select>
+                            </el-select> -->
                             <div class="algorithm_content_demonstration" ref="diameterCountDiv"> <br></div>
                             <el-input v-model="inputData" type="number" size="mini"
-                                style="width:100px;margin-bottom:5px;margin-top:5px; margin-right:5px"></el-input>
+                                style="width:100px;margin-bottom:15px;margin-top:5px; margin-right:5px"></el-input>
 
                             <el-button type="primary" size="mini" @click="getAll">Apply</el-button>
                             <el-table :data="tableData" border style="width: 100%;height:40%">
@@ -87,12 +87,12 @@
                                 <template slot="empty">
                                     <el-empty :image-size="30" description='empty'></el-empty>
                                 </template>
-                                <el-table-column prop="Length" label="Length" width="80">
+                                <el-table-column prop="Length" label="Length" width="130">
                                 </el-table-column>
-                                <el-table-column prop="RealDiameter" label="RealDiameter" width="115">
+                                <el-table-column prop="RealDiameter" label="RealDiameter" width="160">
                                 </el-table-column>
-                                <el-table-column prop="Diameter" label="Diameter" width="85">
-                                </el-table-column>
+                                <!-- <el-table-column prop="Diameter" label="Diameter" width="85">
+                                </el-table-column> -->
                             </el-table>
                         </div>
 
@@ -198,14 +198,6 @@ export default {
             tableData: [],
             inputData: 1,
             myChart: null,
-            options: [{
-                value: 'realDiameter',
-                label: 'real Diameter'
-            }, {
-                value: 'nozzleDiameter',
-                label: 'nozzle Diameter'
-            }],
-            value: 'nozzleDiameter'
         }
     },
     methods: {
@@ -264,14 +256,8 @@ export default {
                         this.imageURl1 = 'data:image/png;base64,' + res.data.data.src1;
                         this.imageURl2 = 'data:image/png;base64,' + res.data.data.src2;
                         this.imageURl3 = 'data:image/png;base64,' + res.data.data.src3;
-                        let rate = 1
-                        if (this.value == "realDiameter") {
-                            rate = this.inputData / Number(res.data.data.r[0])
-                        } else {
-                            rate = this.inputData / Number(res.data.data.nozzleDiameter)
-                        }
+                        let rate = this.inputData / Number(res.data.data.r[0])
                         this.tableData = res.data.data.r.map((v, index) => ({
-                            Diameter: Number(v).toFixed(4),
                             Length: Number(rate * res.data.data.y[index]).toFixed(4),
                             RealDiameter: (rate * Number(v)).toFixed(4)
                         }))
@@ -542,8 +528,8 @@ export default {
         handleDownload() {
             if (this.tableData.length > 0) {
                 import('@/vendor/Export2Excel').then(excel => {
-                    const tHeader = ['Length', 'RealDiameter', 'Diameter'];
-                    const filterVal = ['Length', 'RealDiameter', 'Diameter'];
+                    const tHeader = ['Length', 'RealDiameter'];
+                    const filterVal = ['Length', 'RealDiameter'];
                     const data = this.formatJson(filterVal)
                     excel.export_json_to_excel({
                         header: tHeader,

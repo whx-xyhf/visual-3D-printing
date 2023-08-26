@@ -63,6 +63,7 @@ def detect_symmetric_region(image, symmetry_lsit=[0]):
     for num in symmetry_lsit:
         result.extend(range(num - range, num + range))
     print(result)
+    error_list=[]
     for symmetry in result:
         if symmetry > height-symmetry:
             top_image = image[height-symmetry:symmetry, :]
@@ -73,12 +74,9 @@ def detect_symmetric_region(image, symmetry_lsit=[0]):
 
         # 翻转左半部分并与右半部分进行比较
         flipped_top_half = cv2.flip(top_image, 0)
-        result = np.abs(flipped_top_half - bottom_half)
+        error_list.append (np.abs(flipped_top_half - bottom_half))
 
-    # 将具有垂直对称性的像素标记到结果图像中
-    result[:, :middle] = result.astype(np.uint8) * 255
-
-    return result
+    return symmetry_lsit[error_list.index(min(error_list))]
 
 
 # def image_mosaic(binary_image, k=3, valid=[]):
